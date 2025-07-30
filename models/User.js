@@ -31,6 +31,24 @@ const UserSchema = new mongoose.Schema(
       default: "",
       maxLength: [250, "Must be at most 250 characters long"],
     },
+    fullName: {
+      type: String,
+      default: "",
+      maxLength: [100, "Must be at most 100 characters long"],
+    },
+    avatar: {
+      type: String,
+      default: "",
+    },
+    website: {
+      type: String,
+      default: "",
+    },
+    location: {
+      type: String,
+      default: "",
+      maxLength: [100, "Must be at most 100 characters long"],
+    },
     isAdmin: {
       type: Boolean,
       default: false,

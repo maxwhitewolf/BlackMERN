@@ -19,6 +19,19 @@ const PostSchema = new mongoose.Schema(
       required: true,
       maxLength: [8000, "Must be no more than 8000 characters"],
     },
+    image: {
+      type: String,
+      default: "",
+    },
+    location: {
+      type: String,
+      default: "",
+      maxLength: [100, "Must be no more than 100 characters"],
+    },
+    tags: [{
+      type: String,
+      maxLength: [20, "Tag must be no more than 20 characters"],
+    }],
     likeCount: {
       type: Number,
       default: 0,

@@ -5,8 +5,12 @@ const mongoose = require("mongoose");
 
 const sendMessage = async (req, res) => {
   try {
-    const recipientId = req.params.id;
-    const { content, userId } = req.body;
+    const { recipientId, content } = req.body;
+    const { userId } = req.body;
+
+    if (!recipientId || !content) {
+      throw new Error("Recipient ID and content are required");
+    }
 
     const recipient = await User.findById(recipientId);
 
@@ -26,17 +30,19 @@ const sendMessage = async (req, res) => {
       });
     }
 
-    await Message.create({
+    const message = await Message.create({
       conversation: conversation._id,
       sender: userId,
       content,
     });
 
     conversation.lastMessageAt = Date.now();
+    await conversation.save();
 
-    conversation.save();
+    const populatedMessage = await Message.findById(message._id)
+      .populate("sender", "username avatar");
 
-    return res.json({ success: true });
+    return res.json(populatedMessage);
   } catch (err) {
     console.log(err);
     return res.status(400).json({ error: err.message });
@@ -58,7 +64,44 @@ const getMessages = async (req, res) => {
     })
       .populate("sender", "-password")
       .sort("-createdAt")
-      .limit(12);
+      .limit(50);
+
+    return res.json(messages.reverse());
+  } catch (err) {
+    console.log(err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+const getMessagesBetweenUsers = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const otherUserId = req.params.userId;
+
+    if (!otherUserId) {
+      throw new Error("User ID is required");
+    }
+
+    if (userId === otherUserId) {
+      throw new Error("Cannot message yourself");
+    }
+
+    const conversation = await Conversation.findOne({
+      recipients: {
+        $all: [userId, otherUserId],
+      },
+    });
+
+    if (!conversation) {
+      return res.json([]);
+    }
+
+    const messages = await Message.find({
+      conversation: conversation._id,
+    })
+      .populate("sender", "username avatar")
+      .sort("createdAt")
+      .limit(50);
 
     return res.json(messages);
   } catch (err) {
@@ -99,5 +142,6 @@ const getConversations = async (req, res) => {
 module.exports = {
   sendMessage,
   getMessages,
+  getMessagesBetweenUsers,
   getConversations,
 };

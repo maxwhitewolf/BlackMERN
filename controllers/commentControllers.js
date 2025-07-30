@@ -39,6 +39,10 @@ const createComment = async (req, res) => {
 
     await Comment.populate(comment, { path: "commenter", select: "-password" });
 
+    // Create activity for comment
+    const { createActivity } = require("./activityControllers");
+    await createActivity(userId, post.poster, "comment", postId, comment._id);
+
     return res.json(comment);
   } catch (err) {
     return res.status(400).json({ error: err.message });

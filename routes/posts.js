@@ -4,6 +4,9 @@ const postControllers = require("../controllers/postControllers");
 const { verifyToken, optionallyVerifyToken } = require("../middleware/auth");
 
 router.get("/", optionallyVerifyToken, postControllers.getPosts);
+router.get("/home", verifyToken, postControllers.getHomeFeed);
+router.get("/search", optionallyVerifyToken, postControllers.searchPosts);
+router.get("/explore", optionallyVerifyToken, postControllers.getExplorePosts);
 router.post("/", verifyToken, postControllers.createPost);
 
 router.get("/:id", optionallyVerifyToken, postControllers.getPost);

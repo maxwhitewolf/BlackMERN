@@ -1,93 +1,146 @@
+import React, { useState } from 'react';
 import {
-  Alert,
-  Button,
-  Checkbox,
+  Box,
   Container,
-  FormControlLabel,
-  Stack,
+  Card,
+  CardContent,
   TextField,
+  Button,
   Typography,
-} from "@mui/material";
-import { Box } from "@mui/system";
-import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { login } from "../../api/users";
-import ErrorAlert from "../ErrorAlert";
-import { loginUser } from "../../helpers/authHelper";
-import Copyright from "../Copyright";
+  Divider,
+  Link,
+  Alert,
+} from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { styled } from '@mui/material/styles';
+
+const LoginCard = styled(Card)(({ theme }) => ({
+  maxWidth: 400,
+  margin: '0 auto',
+  backgroundColor: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.divider}`,
+  borderRadius: 12,
+}));
 
 const LoginView = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
-
-  const [serverError, setServerError] = useState("");
-
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
 
-    const data = await login(formData);
-    if (data.error) {
-      setServerError(data.error);
-    } else {
-      loginUser(data);
-      navigate("/");
+    try {
+      const response = await fetch('/api/users/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        navigate('/home');
+      } else {
+        setError(data.message || 'Invalid email or password');
+      }
+    } catch (err) {
+      setError('Network error. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Container maxWidth={"xs"} sx={{ mt: 6 }}>
-      <Stack alignItems="center">
-        <Typography variant="h2" color="text.secondary" sx={{ mb: 6 }}>
-          <Link to="/" color="inherit" underline="none">
-            PostIt
+    <Container maxWidth="sm" sx={{ py: 8 }}>
+      <Box sx={{ textAlign: 'center', mb: 4 }}>
+        <Typography
+          variant="h3"
+          sx={{
+            fontWeight: 700,
+            background: 'linear-gradient(45deg, #0095f6, #ff6b6b)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 2,
+          }}
+        >
+          BlanX
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Sign in to see photos and videos from your friends.
+        </Typography>
+      </Box>
+
+      <LoginCard>
+        <CardContent sx={{ p: 4 }}>
+          <form onSubmit={handleSubmit}>
+            {error && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {error}
+              </Alert>
+            )}
+
+            <TextField
+              fullWidth
+              label="Email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              sx={{ mb: 3 }}
+              required
+            />
+
+            <TextField
+              fullWidth
+              label="Password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              sx={{ mb: 3 }}
+              required
+            />
+
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              size="large"
+              disabled={loading}
+              sx={{ mb: 3 }}
+            >
+              {loading ? 'Signing In...' : 'Sign In'}
+            </Button>
+          </form>
+        </CardContent>
+      </LoginCard>
+
+      <Box sx={{ textAlign: 'center', mt: 3 }}>
+        <Typography variant="body2" color="text.secondary">
+          Don't have an account?{' '}
+          <Link
+            href="/signup"
+            sx={{
+              color: 'primary.main',
+              textDecoration: 'none',
+              fontWeight: 600,
+              '&:hover': {
+                textDecoration: 'underline',
+              },
+            }}
+          >
+            Sign up
           </Link>
         </Typography>
-        <Typography variant="h5" gutterBottom>
-          Login
-        </Typography>
-        <Typography color="text.secondary">
-          Don't have an account yet? <Link to="/signup">Sign Up</Link>
-        </Typography>
-        <Box component="form" onSubmit={handleSubmit}>
-          <TextField
-            label="Email Address"
-            fullWidth
-            margin="normal"
-            autoComplete="email"
-            autoFocus
-            required
-            id="email"
-            name="email"
-            onChange={handleChange}
-          />
-          <TextField
-            label="Password"
-            fullWidth
-            required
-            margin="normal"
-            id="password  "
-            name="password"
-            onChange={handleChange}
-            type="password"
-          />
-
-          <ErrorAlert error={serverError} />
-          <Button type="submit" fullWidth variant="contained" sx={{ my: 2 }}>
-            Login
-          </Button>
-        </Box>
-        <Box sx={{ mt: 3 }}>
-          <Copyright />
-        </Box>
-      </Stack>
+      </Box>
     </Container>
   );
 };

@@ -2,7 +2,15 @@ const jwt = require("jsonwebtoken");
 
 const verifyToken = (req, res, next) => {
   try {
-    const token = req.headers["x-access-token"];
+    let token = req.headers["x-access-token"];
+    
+    // Also check for Authorization Bearer token
+    if (!token && req.headers.authorization) {
+      const authHeader = req.headers.authorization;
+      if (authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
 
     if (!token) {
       throw new Error("No token provided");
@@ -24,7 +32,15 @@ const verifyToken = (req, res, next) => {
 
 const optionallyVerifyToken = (req, res, next) => {
   try {
-    const token = req.headers["x-access-token"];
+    let token = req.headers["x-access-token"];
+    
+    // Also check for Authorization Bearer token
+    if (!token && req.headers.authorization) {
+      const authHeader = req.headers.authorization;
+      if (authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7);
+      }
+    }
 
     if (!token) return next();
 

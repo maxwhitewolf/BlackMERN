@@ -12,6 +12,17 @@ const getUserDict = (token, user) => {
     username: user.username,
     userId: user._id,
     isAdmin: user.isAdmin,
+    user: {
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName,
+      biography: user.biography,
+      avatar: user.avatar,
+      website: user.website,
+      location: user.location,
+      isAdmin: user.isAdmin,
+    },
   };
 };
 
@@ -92,7 +103,11 @@ const follow = async (req, res) => {
     const { userId } = req.body;
     const followingId = req.params.id;
 
-    const existingFollow = await Follow.find({ userId, followingId });
+    if (userId === followingId) {
+      throw new Error("Cannot follow yourself");
+    }
+
+    const existingFollow = await Follow.findOne({ userId, followingId });
 
     if (existingFollow) {
       throw new Error("Already following this user");
@@ -100,7 +115,23 @@ const follow = async (req, res) => {
 
     const follow = await Follow.create({ userId, followingId });
 
-    return res.status(200).json({ data: follow });
+    // Create activity for follow
+    const { createActivity } = require("./activityControllers");
+    await createActivity(userId, followingId, "follow");
+
+    // Get updated user data
+    const user = await User.findById(followingId).select("-password");
+    const followerCount = await Follow.countDocuments({ followingId });
+    const followingCount = await Follow.countDocuments({ userId: followingId });
+
+    return res.status(200).json({ 
+      success: true,
+      user: {
+        ...user.toObject(),
+        followerCount,
+        followingCount
+      }
+    });
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
@@ -133,15 +164,27 @@ const unfollow = async (req, res) => {
     const { userId } = req.body;
     const followingId = req.params.id;
 
-    const existingFollow = await Follow.find({ userId, followingId });
+    const existingFollow = await Follow.findOne({ userId, followingId });
 
     if (!existingFollow) {
       throw new Error("Not already following user");
     }
 
-    await existingFollow.remove();
+    await existingFollow.deleteOne();
 
-    return res.status(200).json({ data: existingFollow });
+    // Get updated user data
+    const user = await User.findById(followingId).select("-password");
+    const followerCount = await Follow.countDocuments({ followingId });
+    const followingCount = await Follow.countDocuments({ userId: followingId });
+
+    return res.status(200).json({ 
+      success: true,
+      user: {
+        ...user.toObject(),
+        followerCount,
+        followingCount
+      }
+    });
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
@@ -181,21 +224,29 @@ const getUser = async (req, res) => {
       throw new Error("User does not exist");
     }
 
+    // Get follower and following counts
+    const followerCount = await Follow.countDocuments({ followingId: user._id });
+    const followingCount = await Follow.countDocuments({ userId: user._id });
+
+    // Get posts
     const posts = await Post.find({ poster: user._id })
-      .populate("poster")
+      .populate("poster", "username avatar fullName")
       .sort("-createdAt");
 
-    let likeCount = 0;
-
+    let totalLikes = 0;
     posts.forEach((post) => {
-      likeCount += post.likeCount;
+      totalLikes += post.likeCount;
     });
 
     const data = {
-      user,
+      user: {
+        ...user.toObject(),
+        followerCount,
+        followingCount,
+      },
       posts: {
         count: posts.length,
-        likeCount,
+        totalLikes,
         data: posts,
       },
     };
@@ -209,8 +260,15 @@ const getUser = async (req, res) => {
 const getRandomUsers = async (req, res) => {
   try {
     let { size } = req.query;
+    const { userId } = req.body;
 
-    const users = await User.find().select("-password");
+    // Get all users except the current user
+    let users = await User.find({ _id: { $ne: userId } }).select("-password");
+
+    // If no other users exist, return empty array
+    if (users.length === 0) {
+      return res.status(200).json([]);
+    }
 
     const randomUsers = [];
 
@@ -222,12 +280,105 @@ const getRandomUsers = async (req, res) => {
 
     for (let i = 0; i < randomIndices.length; i++) {
       const randomUser = users[randomIndices[i]];
-      randomUsers.push(randomUser);
+      
+      // Add follower count to each user
+      const followerCount = await Follow.countDocuments({ followingId: randomUser._id });
+      const userWithCount = {
+        ...randomUser.toObject(),
+        followerCount
+      };
+      
+      randomUsers.push(userWithCount);
     }
 
     return res.status(200).json(randomUsers);
   } catch (err) {
     console.log(err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+const getCurrentUser = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const user = await User.findById(userId).select("-password");
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Get follower and following counts
+    const followerCount = await Follow.countDocuments({ followingId: user._id });
+    const followingCount = await Follow.countDocuments({ userId: user._id });
+
+    // Get post count
+    const postCount = await Post.countDocuments({ poster: user._id });
+
+    const data = {
+      ...user.toObject(),
+      followerCount,
+      followingCount,
+      postCount,
+    };
+
+    return res.status(200).json(data);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+const searchUsers = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const { userId } = req.body;
+    
+    if (!q || q.length < 2) {
+      return res.status(200).json([]);
+    }
+
+    const users = await User.find({
+      _id: { $ne: userId }, // Exclude current user
+      $or: [
+        { username: { $regex: q, $options: 'i' } },
+        { fullName: { $regex: q, $options: 'i' } }
+      ]
+    })
+    .select("-password")
+    .limit(10);
+
+    // Add follower counts to each user
+    const usersWithCounts = await Promise.all(
+      users.map(async (user) => {
+        const followerCount = await Follow.countDocuments({ followingId: user._id });
+        return {
+          ...user.toObject(),
+          followerCount
+        };
+      })
+    );
+
+    return res.status(200).json(usersWithCounts);
+  } catch (err) {
+    console.error('Search users error:', err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+const getFollowStatus = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const targetUserId = req.params.id;
+
+    if (!userId || !targetUserId) {
+      throw new Error("User IDs are required");
+    }
+
+    const follow = await Follow.findOne({ userId, followingId: targetUserId });
+    const isFollowing = !!follow;
+
+    return res.status(200).json({ isFollowing });
+  } catch (err) {
     return res.status(400).json({ error: err.message });
   }
 };
@@ -251,6 +402,9 @@ module.exports = {
   getFollowers,
   getFollowing,
   getUser,
+  getCurrentUser,
   getRandomUsers,
   updateUser,
+  searchUsers,
+  getFollowStatus,
 };

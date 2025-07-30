@@ -3,6 +3,7 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const Comment = require("../models/Comment");
 const PostLike = require("../models/PostLike");
+const Follow = require("../models/Follow");
 const paginate = require("../util/paginate");
 const cooldown = new Set();
 
@@ -10,10 +11,11 @@ USER_LIKES_PAGE_SIZE = 9;
 
 const createPost = async (req, res) => {
   try {
-    const { title, content, userId } = req.body;
+    const { title, content, location, tags, userId } = req.body;
+    let image = req.body.image || "";
 
     if (!(title && content)) {
-      throw new Error("All input required");
+      throw new Error("Title and content are required");
     }
 
     if (cooldown.has(userId)) {
@@ -27,13 +29,26 @@ const createPost = async (req, res) => {
       cooldown.delete(userId);
     }, 60000);
 
+    // Handle image upload if provided
+    if (req.file) {
+      // For now, we'll use a placeholder image URL
+      // In production, you'd upload to a service like AWS S3 or Cloudinary
+      image = `https://picsum.photos/600/600?random=${Date.now()}`;
+    }
+
     const post = await Post.create({
       title,
       content,
+      image: image || "",
+      location: location || "",
+      tags: tags ? (Array.isArray(tags) ? tags : tags.split(' ').filter(tag => tag.trim())) : [],
       poster: userId,
     });
 
-    res.json(post);
+    const populatedPost = await Post.findById(post._id)
+      .populate("poster", "username avatar fullName");
+
+    res.json(populatedPost);
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
@@ -203,7 +218,7 @@ const getPosts = async (req, res) => {
     if (!page) page = 1;
 
     let posts = await Post.find()
-      .populate("poster", "-password")
+      .populate("poster", "username avatar fullName")
       .sort(sortBy)
       .lean();
 
@@ -234,6 +249,46 @@ const getPosts = async (req, res) => {
   }
 };
 
+const getHomeFeed = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const { page = 1, limit = 10 } = req.query;
+
+    if (!userId) {
+      throw new Error("User ID required");
+    }
+
+    const skip = (page - 1) * limit;
+
+    // Get users that the current user follows
+    const following = await Follow.find({ userId }).select("followingId");
+    const followingIds = following.map(f => f.followingId);
+
+    // Add current user's posts to the feed
+    followingIds.push(userId);
+
+    const posts = await Post.find({ poster: { $in: followingIds } })
+      .populate("poster", "username avatar fullName")
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    await setLiked(posts, userId);
+    await enrichWithUserLikePreview(posts);
+
+    const total = await Post.countDocuments({ poster: { $in: followingIds } });
+
+    return res.json({
+      posts,
+      total,
+      page: parseInt(page),
+      totalPages: Math.ceil(total / limit),
+    });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
 const likePost = async (req, res) => {
   try {
     const postId = req.params.id;
@@ -260,6 +315,10 @@ const likePost = async (req, res) => {
 
     await post.save();
 
+    // Create activity for like
+    const { createActivity } = require("./activityControllers");
+    await createActivity(userId, post.poster, "like", postId);
+
     return res.json({ success: true });
   } catch (err) {
     return res.status(400).json({ error: err.message });
@@ -283,7 +342,7 @@ const unlikePost = async (req, res) => {
       throw new Error("Post is already not liked");
     }
 
-    await existingPostLike.remove();
+    await existingPostLike.deleteOne();
 
     post.likeCount = (await PostLike.find({ postId })).length;
 
@@ -330,9 +389,72 @@ const getUserLikes = async (req, res) => {
   }
 };
 
+const searchPosts = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const { userId } = req.body;
+    
+    if (!q || q.length < 2) {
+      return res.status(200).json([]);
+    }
+
+    const posts = await Post.find({
+      $or: [
+        { title: { $regex: q, $options: 'i' } },
+        { content: { $regex: q, $options: 'i' } },
+        { tags: { $in: [new RegExp(q, 'i')] } }
+      ]
+    })
+    .populate("poster", "username avatar fullName")
+    .sort("-createdAt")
+    .limit(10)
+    .lean();
+
+    if (userId) {
+      await setLiked(posts, userId);
+    }
+
+    await enrichWithUserLikePreview(posts);
+
+    return res.status(200).json(posts);
+  } catch (err) {
+    console.error('Search posts error:', err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+const getExplorePosts = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const { page = 1, limit = 20 } = req.query;
+
+    const skip = (page - 1) * limit;
+
+    // Get popular posts (most liked) for explore
+    const posts = await Post.find()
+      .populate("poster", "username avatar fullName")
+      .sort("-likeCount -createdAt")
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    if (userId) {
+      await setLiked(posts, userId);
+    }
+
+    await enrichWithUserLikePreview(posts);
+
+    return res.status(200).json(posts);
+  } catch (err) {
+    console.error('Explore posts error:', err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
 module.exports = {
   getPost,
   getPosts,
+  getHomeFeed,
   createPost,
   updatePost,
   deletePost,
@@ -340,4 +462,6 @@ module.exports = {
   unlikePost,
   getUserLikedPosts,
   getUserLikes,
+  searchPosts,
+  getExplorePosts,
 };
