@@ -25,17 +25,19 @@ function App() {
     <ThemeProvider theme={theme}>
       <Box sx={{
         minHeight: '100vh',
-        background:
-          'radial-gradient(1200px 600px at 10% -10%, rgba(16,163,127,0.10) 0%, rgba(16,163,127,0) 70%),\
-           radial-gradient(900px 500px at 110% 10%, rgba(124,77,255,0.10) 0%, rgba(124,77,255,0) 70%),\
-           #0d0f14',
+        background: `
+          radial-gradient(1500px 800px at 5% -10%, rgba(0, 245, 212, 0.15) 0%, rgba(0, 245, 212, 0) 70%),
+          radial-gradient(1200px 600px at 110% 10%, rgba(255, 77, 109, 0.15) 0%, rgba(255, 77, 109, 0) 70%),
+          radial-gradient(800px 800px at 50% 110%, rgba(0, 180, 216, 0.1) 0%, rgba(0, 180, 216, 0) 70%),
+          #0a0a0f
+        `,
         position: 'relative',
         overflow: 'hidden',
       }}>
         <BrowserRouter>
           <TopNavbar />
           <BottomNavbar />
-          <Box sx={{ pt: '60px', pb: '60px', minHeight: '100vh' }}>
+          <Box sx={{ pt: '64px', pb: '64px', minHeight: '100vh' }}>
             <Routes>
               <Route path="/login" element={<LoginView />} />
               <Route path="/signup" element={<SignupView />} />

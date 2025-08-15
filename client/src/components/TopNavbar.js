@@ -1,33 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Box,
+  AppBar,
+  Toolbar,
   Typography,
   IconButton,
-  Badge,
+  Box,
   Avatar,
   Menu,
   MenuItem,
-  ListItemIcon,
-  ListItemText,
-  Divider,
+  Badge,
 } from '@mui/material';
 import {
+  Message as MessageIcon,
+  Notifications as NotificationsIcon,
   Person as PersonIcon,
-  Edit as EditIcon,
-  Bookmark as BookmarkIcon,
+  Settings as SettingsIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
-import NotificationBadge from './NotificationBadge';
 
 const TopNavbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState(null);
-  const [user, setUser] = useState(() => {
+  const [user, setUser] = useState(null);
+  const [messageCount, setMessageCount] = useState(0);
+  const [notificationCount, setNotificationCount] = useState(0);
+
+  useEffect(() => {
     const userData = localStorage.getItem('user');
-    return userData ? JSON.parse(userData) : null;
-  });
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const [messageResponse, notificationResponse] = await Promise.all([
+          fetch('/api/messages/unread-count', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          }),
+          fetch('/api/notifications/unread-count', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          })
+        ]);
+
+        if (messageResponse.ok) {
+          const messageData = await messageResponse.json();
+          setMessageCount(messageData.count || 0);
+        }
+
+        if (notificationResponse.ok) {
+          const notificationData = await notificationResponse.json();
+          setNotificationCount(notificationData.count || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching counts:', error);
+      }
+    };
+
+    fetchCounts();
+  }, []);
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -40,153 +75,170 @@ const TopNavbar = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    setUser(null);
     navigate('/login');
+    handleMenuClose();
   };
 
-  const handleProfileClick = () => {
+  const handleProfile = () => {
+    if (user) {
+      navigate(`/profile/${user.username}`);
+    }
     handleMenuClose();
-    navigate(`/profile/${user?.username}`);
   };
 
-  const handleEditProfileClick = () => {
-    handleMenuClose();
+  const handleSettings = () => {
     navigate('/edit-profile');
+    handleMenuClose();
   };
 
-  const handleSavedClick = () => {
-    handleMenuClose();
-    navigate('/saved');
-  };
+  const navItems = [
+    { 
+      icon: <MessageIcon />, 
+      label: 'Messages', 
+      href: '/messages',
+      badge: messageCount,
+      onClick: () => navigate('/messages')
+    },
+    { 
+      icon: <NotificationsIcon />, 
+      label: 'Activity', 
+      href: '/activity',
+      badge: notificationCount,
+      onClick: () => navigate('/activity')
+    },
+  ];
 
   return (
-    <Box
+    <AppBar
+      position="fixed"
       sx={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1300,
-        height: 60,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 2,
-        px: 3,
-        background: 'rgba(13, 15, 20, 0.75)',
-        backdropFilter: 'var(--glass-blur)',
-        WebkitBackdropFilter: 'var(--glass-blur)',
-        borderBottom: '1px solid var(--glass-border)',
-        boxShadow: 'var(--glass-shadow)',
-        transition: 'var(--transition-normal)',
+        background: 'rgba(42, 47, 74, 0.6)',
+        backdropFilter: 'blur(10px)',
+        border: '1px solid rgba(184, 197, 214, 0.2)',
+        borderTop: 'none',
+        borderLeft: 'none',
+        borderRight: 'none',
+        boxShadow: 'none',
+        zIndex: 50,
       }}
     >
-      {/* Left side - Logo/Brand */}
-      <Typography
-        variant="h6"
-        sx={{
-          fontWeight: 700,
-          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          cursor: 'pointer',
-        }}
-        onClick={() => navigate('/home')}
-      >
-        BlanX
-      </Typography>
+      <Toolbar sx={{ maxWidth: '1200px', width: '100%', mx: 'auto', px: 2 }}>
+        <Box sx={{ width: '144px' }} />
 
-      {/* Right side - User actions */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <NotificationBadge />
-        
-        <IconButton
-          onClick={handleMenuOpen}
-          sx={{
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            '&:hover': {
-              borderColor: 'rgba(255, 255, 255, 0.4)',
-            },
-          }}
-        >
-          <Avatar
-            src={user?.avatar}
+        <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
+          <Typography
+            variant="h5"
+            component="h1"
+            onClick={() => navigate('/home')}
             sx={{
-              width: 32,
-              height: 32,
-              background: user?.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #00f5d4 0%, #00b4d8 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+              cursor: 'pointer',
+              fontFamily: '"Poppins", sans-serif',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                transform: 'scale(1.05)',
+              },
             }}
           >
-            {!user?.avatar && user?.username?.charAt(0)?.toUpperCase()}
-          </Avatar>
-        </IconButton>
+            BLANX
+          </Typography>
+        </Box>
 
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleMenuClose}
-          PaperProps={{
-            sx: {
-              mt: 1,
-              minWidth: 200,
-              background: 'rgba(30, 30, 30, 0.95)',
-              backdropFilter: 'var(--glass-blur)',
-              WebkitBackdropFilter: 'var(--glass-blur)',
-              border: '1px solid var(--glass-border)',
-              boxShadow: 'var(--glass-shadow-lg)',
-              borderRadius: 3,
-              overflow: 'hidden',
-              '& .MuiMenuItem-root': {
-                transition: 'var(--transition-fast)',
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {navItems.map(({ icon, label, href, badge, onClick }) => (
+            <IconButton
+              key={href}
+              onClick={onClick}
+              sx={{
+                background: 'rgba(42, 47, 74, 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(184, 197, 214, 0.2)',
+                borderRadius: '12px',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
-                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  transform: 'translateX(4px)'
-                }
+                  transform: 'scale(1.1) translateY(-2px)',
+                  boxShadow: '0 0 16px rgba(0, 245, 212, 0.4)',
+                  border: '1px solid rgba(0, 245, 212, 0.4)',
+                },
+                '&:active': {
+                  transform: 'scale(0.9)',
+                },
+              }}
+            >
+              <Badge badgeContent={badge} color="error" max={99}>
+                {icon}
+              </Badge>
+            </IconButton>
+          ))}
+          
+          <IconButton
+            onClick={handleMenuOpen}
+            sx={{
+              background: 'rgba(42, 47, 74, 0.6)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid rgba(184, 197, 214, 0.2)',
+              borderRadius: '12px',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              '&:hover': {
+                transform: 'scale(1.1) translateY(-2px)',
+                boxShadow: '0 0 16px rgba(0, 245, 212, 0.4)',
+                border: '1px solid rgba(0, 245, 212, 0.4)',
               },
-              '& .MuiListItemIcon-root': {
-                color: 'primary.main',
-                minWidth: 36
+              '&:active': {
+                transform: 'scale(0.9)',
               },
-            },
-          }}
-          TransitionProps={{
-            enter: true,
-            exit: true,
-          }}
-        >
-          <MenuItem onClick={handleProfileClick}>
-            <ListItemIcon>
-              <PersonIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Profile</ListItemText>
-          </MenuItem>
-          
-          <MenuItem onClick={handleEditProfileClick}>
-            <ListItemIcon>
-              <EditIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Edit Profile</ListItemText>
-          </MenuItem>
-          
-          <MenuItem onClick={handleSavedClick}>
-            <ListItemIcon>
-              <BookmarkIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Saved Posts</ListItemText>
-          </MenuItem>
-          
-          <Divider />
-          
-          <MenuItem onClick={handleLogout}>
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Logout</ListItemText>
-          </MenuItem>
-        </Menu>
-      </Box>
-    </Box>
+            }}
+          >
+            <Avatar
+              src={user?.avatar}
+              sx={{
+                width: 24,
+                height: 24,
+                background: user?.avatar ? 'transparent' : 'linear-gradient(135deg, #00f5d4 0%, #00b4d8 100%)',
+                color: '#0a0a0f',
+                fontWeight: 600,
+                fontSize: '0.75rem',
+              }}
+            >
+              {!user?.avatar && user?.username?.charAt(0)?.toUpperCase()}
+            </Avatar>
+          </IconButton>
+        </Box>
+      </Toolbar>
+
+      <Menu
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleMenuClose}
+        PaperProps={{
+          sx: {
+            background: 'rgba(26, 26, 46, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(0, 245, 212, 0.2)',
+            borderRadius: '12px',
+            mt: 1,
+            minWidth: 180,
+          }
+        }}
+      >
+        <MenuItem onClick={handleProfile} sx={{ color: '#f5f5f5' }}>
+          <PersonIcon sx={{ mr: 2, color: '#00f5d4' }} />
+          Profile
+        </MenuItem>
+        <MenuItem onClick={handleSettings} sx={{ color: '#f5f5f5' }}>
+          <SettingsIcon sx={{ mr: 2, color: '#00f5d4' }} />
+          Settings
+        </MenuItem>
+        <MenuItem onClick={handleLogout} sx={{ color: '#ff4d6d' }}>
+          <LogoutIcon sx={{ mr: 2 }} />
+          Logout
+        </MenuItem>
+      </Menu>
+    </AppBar>
   );
 };
 
