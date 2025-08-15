@@ -38,18 +38,31 @@ import { styled } from '@mui/material/styles';
 
 const StyledCard = styled(Box)(({ theme }) => ({
   marginBottom: 24,
-  backgroundColor: 'rgba(30, 30, 30, 0.8)',
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)',
-  border: '1px solid rgba(38, 38, 38, 0.6)',
+  backgroundColor: '#ffffff',
+  border: '1px solid #e2e8f0',
   borderRadius: 16,
   overflow: 'hidden',
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   position: 'relative',
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
   '&:hover': {
-    transform: 'translateY(-8px) scale(1.02)',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
-    borderColor: 'rgba(0, 149, 246, 0.3)',
+    transform: 'translateY(-8px)',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    borderColor: '#cbd5e1',
+  },
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    inset: 0,
+    background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.02) 0%, rgba(124, 58, 237, 0.02) 100%)',
+    borderRadius: 'inherit',
+    pointerEvents: 'none',
+    zIndex: -1,
+    opacity: 0,
+    transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  },
+  '&:hover::before': {
+    opacity: 1,
   },
 }));
 
@@ -58,7 +71,7 @@ const PostHeader = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   padding: '16px 20px',
   gap: 16,
-  borderBottom: `1px solid rgba(38, 38, 38, 0.5)`,
+  borderBottom: '1px solid #e2e8f0',
   position: 'relative',
   zIndex: 1,
 }));
@@ -68,8 +81,8 @@ const PostActions = styled(Box)(({ theme }) => ({
   alignItems: 'center',
   justifyContent: 'space-between',
   padding: '12px 20px',
-  borderTop: `1px solid rgba(38, 38, 38, 0.5)`,
-  borderBottom: `1px solid rgba(38, 38, 38, 0.5)`,
+  borderTop: '1px solid #e2e8f0',
+  borderBottom: '1px solid #e2e8f0',
   position: 'relative',
   zIndex: 1,
 }));
@@ -89,26 +102,23 @@ const PostFooter = styled(Box)(({ theme }) => ({
 
 const CommentSection = styled(Box)(({ theme }) => ({
   padding: '16px 20px',
-  borderTop: `1px solid rgba(38, 38, 38, 0.5)`,
+  borderTop: '1px solid #e2e8f0',
   position: 'relative',
   zIndex: 1,
   animation: 'fadeInUp 0.3s ease-out',
 }));
 
 const SuggestedUsersCard = styled(Box)(({ theme }) => ({
-  backgroundColor: 'rgba(30, 30, 30, 0.8)',
-  backdropFilter: 'blur(10px)',
-  WebkitBackdropFilter: 'blur(10px)',
-  border: '1px solid rgba(38, 38, 38, 0.6)',
+  backgroundColor: '#ffffff',
+  border: '1px solid #e2e8f0',
   borderRadius: 16,
-  marginBottom: 24,
-  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
-  position: 'relative',
-  overflow: 'hidden',
+  padding: 20,
+  boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
-    transform: 'translateY(-8px) scale(1.02)',
-    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
-    borderColor: 'rgba(0, 149, 246, 0.3)',
+    transform: 'translateY(-4px)',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    borderColor: '#cbd5e1',
   },
 }));
 
@@ -469,34 +479,41 @@ const HomeView = () => {
   const PostCard = ({ post }) => (
     <Fade in={true} timeout={500}>
       <Box
-        className="glass-card hover-lift"
+        className="professional-card hover-lift"
         sx={{
           mb: 3,
           position: 'relative',
           overflow: 'hidden',
           maxWidth: '100%',
           borderRadius: '16px',
-          backgroundColor: 'rgba(30, 30, 30, 0.8)',
-          backdropFilter: 'blur(10px)',
-          WebkitBackdropFilter: 'blur(10px)',
-          border: '1px solid rgba(38, 38, 38, 0.6)',
-          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e2e8f0',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
           '&:hover': {
-            transform: 'translateY(-8px) scale(1.02)',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
-            borderColor: 'rgba(0, 149, 246, 0.3)',
+            transform: 'translateY(-8px)',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            borderColor: '#cbd5e1',
             '& .post-image': {
-              transform: 'scale(1.05)',
+              transform: 'scale(1.02)',
             },
             '& .action-button': {
-              transform: 'scale(1.1)',
+              transform: 'scale(1.05)',
             },
-            '&::before': {
-              opacity: 0.7,
-            },
-            '&::after': {
-              opacity: 1
-            },
+          },
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.02) 0%, rgba(124, 58, 237, 0.02) 100%)',
+            borderRadius: 'inherit',
+            pointerEvents: 'none',
+            zIndex: -1,
+            opacity: 0,
+            transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          },
+          '&:hover::before': {
+            opacity: 1,
           },
         }}
       >
@@ -516,7 +533,7 @@ const HomeView = () => {
             sx={{
               width: 40,
               height: 40,
-              background: post.poster?.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              background: post.poster?.avatar ? 'transparent' : 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
               color: 'white',
               fontWeight: 600,
             }}
@@ -530,11 +547,9 @@ const HomeView = () => {
                 sx={{ 
                   fontWeight: 600, 
                   cursor: 'pointer',
-                  color: 'white',
+                  color: '#1e293b',
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
+                    color: '#2563eb',
                   },
                 }}
                 onClick={() => handleUserClick(post.poster?.username)}
@@ -546,7 +561,7 @@ const HomeView = () => {
                   label="✓"
                   size="small"
                   sx={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
                     color: 'white',
                     fontSize: '0.6rem',
                     height: 16,
@@ -642,10 +657,8 @@ const HomeView = () => {
             justifyContent: 'space-between',
             position: 'relative',
             zIndex: 2,
-            background: 'var(--glass-gradient)',
-            backdropFilter: 'var(--glass-blur-sm)',
-            WebkitBackdropFilter: 'var(--glass-blur-sm)',
-            borderTop: '1px solid var(--glass-border)',
+            background: '#ffffff',
+            borderTop: '1px solid #e2e8f0',
           }}
         >
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -653,8 +666,8 @@ const HomeView = () => {
               className="action-button"
               onClick={() => handleLike(post._id)}
               sx={{
-                color: likedPosts.has(post._id) ? '#ff4757' : 'rgba(255, 255, 255, 0.8)',
-                transition: 'var(--transition-normal)',
+                color: likedPosts.has(post._id) ? '#ef4444' : '#64748b',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 position: 'relative',
                 overflow: 'hidden',
                 '&::before': {
@@ -692,8 +705,8 @@ const HomeView = () => {
               className="action-button"
               onClick={() => navigate(`/post/${post._id}`)}
               sx={{
-                color: 'rgba(255, 255, 255, 0.8)',
-                transition: 'var(--transition-normal)',
+                color: '#64748b',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 position: 'relative',
                 overflow: 'hidden',
                 '&::before': {
@@ -704,14 +717,14 @@ const HomeView = () => {
                   width: 0,
                   height: 0,
                   borderRadius: '50%',
-                  background: 'rgba(79, 172, 254, 0.1)',
+                  background: 'rgba(37, 99, 235, 0.1)',
                   transform: 'translate(-50%, -50%)',
-                  transition: 'var(--transition-fast)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   zIndex: -1,
                 },
                 '&:hover': {
-                  transform: 'scale(1.2)',
-                  color: '#4facfe',
+                  transform: 'scale(1.1)',
+                  color: '#2563eb',
                   '&::before': {
                     width: '150%',
                     height: '150%',
@@ -728,8 +741,8 @@ const HomeView = () => {
               className="action-button"
               onClick={() => handleShare(post._id)}
               sx={{
-                color: 'rgba(255, 255, 255, 0.8)',
-                transition: 'var(--transition-normal)',
+                color: '#64748b',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 position: 'relative',
                 overflow: 'hidden',
                 '&::before': {
@@ -740,14 +753,14 @@ const HomeView = () => {
                   width: 0,
                   height: 0,
                   borderRadius: '50%',
-                  background: 'rgba(67, 233, 123, 0.1)',
+                  background: 'rgba(34, 197, 94, 0.1)',
                   transform: 'translate(-50%, -50%)',
-                  transition: 'var(--transition-fast)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                   zIndex: -1,
                 },
                 '&:hover': {
-                  transform: 'scale(1.2)',
-                  color: '#43e97b',
+                  transform: 'scale(1.1)',
+                  color: '#22c55e',
                   '&::before': {
                     width: '150%',
                     height: '150%',
@@ -765,8 +778,8 @@ const HomeView = () => {
             className="action-button"
             onClick={() => handleSave(post._id)}
             sx={{
-              color: savedPosts.has(post._id) ? '#4facfe' : 'rgba(255, 255, 255, 0.8)',
-              transition: 'var(--transition-normal)',
+              color: savedPosts.has(post._id) ? '#f59e0b' : '#64748b',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               position: 'relative',
               overflow: 'hidden',
               '&::before': {
@@ -777,19 +790,19 @@ const HomeView = () => {
                 width: 0,
                 height: 0,
                 borderRadius: '50%',
-                background: savedPosts.has(post._id) ? 'rgba(0, 242, 254, 0.2)' : 'rgba(79, 172, 254, 0.1)',
+                background: savedPosts.has(post._id) ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.1)',
                 transform: 'translate(-50%, -50%)',
-                transition: 'var(--transition-fast)',
+                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
                 zIndex: -1,
               },
-              '&:hover': {
-                transform: 'scale(1.2)',
-                color: savedPosts.has(post._id) ? '#00f2fe' : '#4facfe',
-                '&::before': {
-                  width: '150%',
-                  height: '150%',
+                              '&:hover': {
+                  transform: 'scale(1.1)',
+                  color: '#f59e0b',
+                  '&::before': {
+                    width: '150%',
+                    height: '150%',
+                  },
                 },
-              },
               '&:active': {
                 transform: 'scale(0.95)',
               },
@@ -806,9 +819,7 @@ const HomeView = () => {
             pb: 2,
             position: 'relative',
             zIndex: 2,
-            background: 'var(--glass-gradient)',
-            backdropFilter: 'var(--glass-blur-sm)',
-            WebkitBackdropFilter: 'var(--glass-blur-sm)',
+            background: '#ffffff',
           }}
         >
           <Typography 
@@ -817,10 +828,7 @@ const HomeView = () => {
               fontWeight: 700, 
               mb: 1,
               pt: 1,
-              color: 'white',
-              background: 'var(--primary-gradient)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
+              color: '#1e293b',
               display: 'inline-block',
               position: 'relative',
               '&::after': {
@@ -830,7 +838,7 @@ const HomeView = () => {
                 left: 0,
                 width: '100%',
                 height: 1,
-                background: 'var(--primary-gradient)',
+                background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
                 opacity: 0.5,
                 borderRadius: 1,
               }
@@ -842,7 +850,7 @@ const HomeView = () => {
             variant="body2" 
             sx={{ 
               mb: 1.5,
-              color: 'rgba(255, 255, 255, 0.9)',
+              color: '#1e293b',
               lineHeight: 1.6,
               fontSize: '0.95rem',
               position: 'relative',
@@ -855,12 +863,12 @@ const HomeView = () => {
                 bottom: 0,
                 width: 2,
                 borderRadius: 4,
-                background: 'var(--primary-gradient)',
+                background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
                 opacity: 0.5,
               }
             }}
           >
-            <span style={{ fontWeight: 600, color: 'white', marginRight: '6px' }}>{post.poster?.username}</span> 
+            <span style={{ fontWeight: 600, color: '#1e293b', marginRight: '6px' }}>{post.poster?.username}</span> 
             {post.content}
           </Typography>
           {post.commentCount > 0 && (
@@ -870,13 +878,13 @@ const HomeView = () => {
               sx={{ 
                 cursor: 'pointer', 
                 mb: 1.5,
-                color: 'rgba(255, 255, 255, 0.7)',
+                color: '#64748b',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.5,
-                transition: 'var(--transition-normal)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
-                  color: '#4facfe',
+                  color: '#2563eb',
                   transform: 'translateX(4px)',
                 },
               }}
@@ -887,7 +895,7 @@ const HomeView = () => {
                 component="span" 
                 sx={{ 
                   fontSize: '1rem', 
-                  transition: 'var(--transition-normal)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                   transform: showComments[post._id] ? 'rotate(180deg)' : 'rotate(0deg)',
                 }}
               >
@@ -910,7 +918,7 @@ const HomeView = () => {
                   width: '4px',
                 },
                 '&::-webkit-scrollbar-thumb': {
-                  background: 'var(--primary-gradient)',
+                  background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
                   borderRadius: '10px',
                 },
               }}
@@ -922,16 +930,14 @@ const HomeView = () => {
                     mb: 1.5,
                     p: 1.5,
                     borderRadius: '12px',
-                    background: 'var(--glass-bg-dark)',
-                    border: '1px solid var(--glass-border)',
-                    backdropFilter: 'var(--glass-blur-sm)',
-                    WebkitBackdropFilter: 'var(--glass-blur-sm)',
-                    transition: 'var(--transition-normal)',
+                    background: '#f8fafc',
+                    border: '1px solid #e2e8f0',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     animation: `fadeInUp 0.3s ease-out ${index * 0.05}s`,
                     '&:hover': {
                       transform: 'translateY(-2px)',
-                      boxShadow: 'var(--glass-shadow-sm)',
-                      borderColor: 'var(--glass-border-hover)',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                      borderColor: '#cbd5e1',
                     }
                   }}
                 >
