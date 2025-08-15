@@ -151,10 +151,9 @@ const deletePost = async (req, res) => {
 };
 
 const setLiked = async (posts, userId) => {
-  let searchCondition = {};
-  if (userId) searchCondition = { userId };
-
-  const userPostLikes = await PostLike.find(searchCondition); //userId needed
+  if (!userId) return;
+  
+  const userPostLikes = await PostLike.find({ userId });
 
   posts.forEach((post) => {
     userPostLikes.forEach((userPostLike) => {
@@ -167,10 +166,9 @@ const setLiked = async (posts, userId) => {
 };
 
 const setSaved = async (posts, userId) => {
-  let searchCondition = {};
-  if (userId) searchCondition = { user: userId };
-
-  const userSavedPosts = await Save.find(searchCondition);
+  if (!userId) return;
+  
+  const userSavedPosts = await Save.find({ user: userId });
 
   posts.forEach((post) => {
     userSavedPosts.forEach((savedPost) => {
@@ -336,6 +334,10 @@ const likePost = async (req, res) => {
     const postId = req.params.id;
     const { userId } = req.body;
 
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
     const post = await Post.findById(postId);
 
     if (!post) {
@@ -367,6 +369,10 @@ const unlikePost = async (req, res) => {
     const postId = req.params.id;
     const { userId } = req.body;
 
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
     const post = await Post.findById(postId);
 
     if (!post) {
@@ -381,7 +387,7 @@ const unlikePost = async (req, res) => {
 
     await existingPostLike.deleteOne();
 
-    post.likeCount = (await PostLike.find({ postId })).length;
+    post.likeCount = Math.max(0, (await PostLike.find({ postId })).length);
 
     await post.save();
 
@@ -495,8 +501,12 @@ const savePost = async (req, res) => {
     const postId = req.params.id;
     const { userId } = req.body;
 
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
     if (!mongoose.Types.ObjectId.isValid(postId)) {
-      throw new Error("Post does not exist");
+      throw new Error("Invalid post ID");
     }
 
     const post = await Post.findById(postId);
@@ -527,8 +537,12 @@ const unsavePost = async (req, res) => {
     const postId = req.params.id;
     const { userId } = req.body;
 
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
     if (!mongoose.Types.ObjectId.isValid(postId)) {
-      throw new Error("Post does not exist");
+      throw new Error("Invalid post ID");
     }
 
     const save = await Save.findOneAndDelete({ user: userId, post: postId });

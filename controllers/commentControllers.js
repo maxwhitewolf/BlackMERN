@@ -10,6 +10,14 @@ const createComment = async (req, res) => {
     const postId = req.params.id;
     const { content, parentId, userId } = req.body;
 
+    if (!userId) {
+      throw new Error("User ID is required");
+    }
+
+    if (!content || !content.trim()) {
+      throw new Error("Comment content is required");
+    }
+
     const post = await Post.findById(postId);
 
     if (!post) {
@@ -28,7 +36,7 @@ const createComment = async (req, res) => {
     }, 30000);
 
     const comment = await Comment.create({
-      content,
+      content: content.trim(),
       parent: parentId,
       post: postId,
       commenter: userId,

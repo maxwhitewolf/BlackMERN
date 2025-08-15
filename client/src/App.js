@@ -25,7 +25,10 @@ function App() {
     <ThemeProvider theme={theme}>
       <Box sx={{
         minHeight: '100vh',
-        background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%)',
+        background:
+          'radial-gradient(1200px 600px at 10% -10%, rgba(16,163,127,0.10) 0%, rgba(16,163,127,0) 70%),\
+           radial-gradient(900px 500px at 110% 10%, rgba(124,77,255,0.10) 0%, rgba(124,77,255,0) 70%),\
+           #0d0f14',
         position: 'relative',
         overflow: 'hidden',
       }}>
