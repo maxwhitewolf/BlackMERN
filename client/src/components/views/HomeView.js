@@ -479,9 +479,8 @@ const HomeView = () => {
   const PostCard = ({ post }) => (
     <Fade in={true} timeout={500}>
       <Box
-        className="professional-card hover-lift"
         sx={{
-          mb: 3,
+          mb: 4,
           position: 'relative',
           overflow: 'hidden',
           maxWidth: '100%',
@@ -490,110 +489,30 @@ const HomeView = () => {
           border: '1px solid #e2e8f0',
           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+          cursor: 'pointer',
           '&:hover': {
             transform: 'translateY(-8px)',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
             borderColor: '#cbd5e1',
             '& .post-image': {
-              transform: 'scale(1.02)',
-            },
-            '& .action-button': {
               transform: 'scale(1.05)',
             },
           },
-          '&::before': {
-            content: '""',
-            position: 'absolute',
-            inset: 0,
-            background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.02) 0%, rgba(124, 58, 237, 0.02) 100%)',
-            borderRadius: 'inherit',
-            pointerEvents: 'none',
-            zIndex: -1,
-            opacity: 0,
-            transition: 'opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          },
-          '&:hover::before': {
-            opacity: 1,
-          },
         }}
+        onClick={() => navigate(`/post/${post._id}`)}
       >
-        {/* Post Header */}
-        <Box
-          sx={{
-            p: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
-          <Avatar
-            src={post.poster?.avatar}
-            sx={{
-              width: 40,
-              height: 40,
-              background: post.poster?.avatar ? 'transparent' : 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-              color: 'white',
-              fontWeight: 600,
-            }}
-          >
-            {!post.poster?.avatar && post.poster?.username?.charAt(0)?.toUpperCase()}
-          </Avatar>
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography 
-                variant="body2" 
-                sx={{ 
-                  fontWeight: 600, 
-                  cursor: 'pointer',
-                  color: '#1e293b',
-                  '&:hover': {
-                    color: '#2563eb',
-                  },
-                }}
-                onClick={() => handleUserClick(post.poster?.username)}
-              >
-                {post.poster?.username}
-              </Typography>
-              {post.poster?.isAdmin && (
-                <Chip
-                  label="✓"
-                  size="small"
-                  sx={{
-                    background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-                    color: 'white',
-                    fontSize: '0.6rem',
-                    height: 16,
-                    animation: 'pulse 2s infinite',
-                  }}
-                />
-              )}
-            </Box>
-            <Typography variant="caption" color="text.secondary">
-              {new Date(post.createdAt).toLocaleDateString()}
-            </Typography>
-          </Box>
-        </Box>
-
-        {/* Post Image */}
+        {/* Post Image - Top Section */}
         <Box
           className="post-image"
           sx={{
             position: 'relative',
             overflow: 'hidden',
-            transition: 'var(--transition-normal)',
-            cursor: 'pointer',
-            maxHeight: '600px',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            maxHeight: '400px',
             '&:hover .image-overlay': {
               opacity: 1,
             },
-            '&:hover .view-post-button': {
-              opacity: 1,
-              transform: 'translateY(0)',
-            }
           }}
-          onClick={() => navigate(`/post/${post._id}`)}
         >
           <img
             src={post.image}
@@ -601,10 +520,10 @@ const HomeView = () => {
             style={{
               width: '100%',
               height: 'auto',
-              maxHeight: '600px',
+              maxHeight: '400px',
               objectFit: 'cover',
               display: 'block',
-              transition: 'var(--transition-normal)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
             }}
           />
           <Box
@@ -614,9 +533,9 @@ const HomeView = () => {
               left: 0,
               right: 0,
               bottom: 0,
-              background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)',
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.3) 100%)',
               opacity: 0,
-              transition: 'var(--transition-normal)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -625,9 +544,8 @@ const HomeView = () => {
           >
             <Button
               variant="contained"
-              className="view-post-button"
               sx={{
-                background: 'var(--primary-gradient)',
+                background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
                 borderRadius: '30px',
                 color: 'white',
                 fontWeight: 600,
@@ -635,10 +553,10 @@ const HomeView = () => {
                 py: 1,
                 opacity: 0,
                 transform: 'translateY(20px)',
-                transition: 'var(--transition-normal)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                 '&:hover': {
-                  background: 'var(--primary-gradient)',
-                  boxShadow: 'var(--glass-shadow)',
+                  background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
+                  boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                   transform: 'translateY(0) scale(1.05)',
                 }
               }}
@@ -648,421 +566,124 @@ const HomeView = () => {
           </Box>
         </Box>
 
-        {/* Post Actions */}
-        <Box
-          sx={{
-            p: 2,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            position: 'relative',
-            zIndex: 2,
-            background: '#ffffff',
-            borderTop: '1px solid #e2e8f0',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-            <IconButton
-              className="action-button"
-              onClick={() => handleLike(post._id)}
+        {/* Content Section - Bottom */}
+        <Box sx={{ p: 3 }}>
+          {/* Post Header */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+            <Avatar
+              src={post.poster?.avatar}
               sx={{
-                color: likedPosts.has(post._id) ? '#ef4444' : '#64748b',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: 0,
-                  height: 0,
-                  borderRadius: '50%',
-                  background: likedPosts.has(post._id) ? 'rgba(255, 71, 87, 0.2)' : 'rgba(255, 71, 87, 0.1)',
-                  transform: 'translate(-50%, -50%)',
-                  transition: 'var(--transition-fast)',
-                  zIndex: -1,
-                },
-                '&:hover': {
-                  transform: 'scale(1.2)',
-                  color: likedPosts.has(post._id) ? '#ff3742' : '#ff4757',
-                  '&::before': {
-                    width: '150%',
-                    height: '150%',
-                  },
-                },
-                '&:active': {
-                  transform: 'scale(0.95)',
-                },
-                ...(likedPosts.has(post._id) && {
-                  animation: 'pulse 0.4s ease-out',
-                }),
+                width: 40,
+                height: 40,
+                background: post.poster?.avatar ? 'transparent' : 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
+                color: 'white',
+                fontWeight: 600,
               }}
             >
-              {likedPosts.has(post._id) ? <LikeIcon /> : <UnlikeIcon />}
-            </IconButton>
-            <IconButton
-              className="action-button"
-              onClick={() => navigate(`/post/${post._id}`)}
-              sx={{
-                color: '#64748b',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: 0,
-                  height: 0,
-                  borderRadius: '50%',
-                  background: 'rgba(37, 99, 235, 0.1)',
-                  transform: 'translate(-50%, -50%)',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  zIndex: -1,
-                },
-                '&:hover': {
-                  transform: 'scale(1.1)',
-                  color: '#2563eb',
-                  '&::before': {
-                    width: '150%',
-                    height: '150%',
-                  },
-                },
-                '&:active': {
-                  transform: 'scale(0.95)',
-                },
-              }}
-            >
-              <CommentIcon />
-            </IconButton>
-            <IconButton
-              className="action-button"
-              onClick={() => handleShare(post._id)}
-              sx={{
-                color: '#64748b',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                position: 'relative',
-                overflow: 'hidden',
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  width: 0,
-                  height: 0,
-                  borderRadius: '50%',
-                  background: 'rgba(34, 197, 94, 0.1)',
-                  transform: 'translate(-50%, -50%)',
-                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                  zIndex: -1,
-                },
-                '&:hover': {
-                  transform: 'scale(1.1)',
-                  color: '#22c55e',
-                  '&::before': {
-                    width: '150%',
-                    height: '150%',
-                  },
-                },
-                '&:active': {
-                  transform: 'scale(0.95)',
-                },
-              }}
-            >
-              <SendIcon />
-            </IconButton>
-          </Box>
-          <IconButton
-            className="action-button"
-            onClick={() => handleSave(post._id)}
-            sx={{
-              color: savedPosts.has(post._id) ? '#f59e0b' : '#64748b',
-              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-              position: 'relative',
-              overflow: 'hidden',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                width: 0,
-                height: 0,
-                borderRadius: '50%',
-                background: savedPosts.has(post._id) ? 'rgba(245, 158, 11, 0.2)' : 'rgba(245, 158, 11, 0.1)',
-                transform: 'translate(-50%, -50%)',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                zIndex: -1,
-              },
-                              '&:hover': {
-                  transform: 'scale(1.1)',
-                  color: '#f59e0b',
-                  '&::before': {
-                    width: '150%',
-                    height: '150%',
-                  },
-                },
-              '&:active': {
-                transform: 'scale(0.95)',
-              },
-            }}
-          >
-            {savedPosts.has(post._id) ? <SaveIcon /> : <UnsaveIcon />}
-          </IconButton>
-        </Box>
-
-        {/* Post Footer */}
-        <Box
-          sx={{
-            px: 2,
-            pb: 2,
-            position: 'relative',
-            zIndex: 2,
-            background: '#ffffff',
-          }}
-        >
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              fontWeight: 700, 
-              mb: 1,
-              pt: 1,
-              color: '#1e293b',
-              display: 'inline-block',
-              position: 'relative',
-              '&::after': {
-                content: '""',
-                position: 'absolute',
-                bottom: -2,
-                left: 0,
-                width: '100%',
-                height: 1,
-                background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-                opacity: 0.5,
-                borderRadius: 1,
-              }
-            }}
-          >
-            {post.likeCount || 0} likes
-          </Typography>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              mb: 1.5,
-              color: '#1e293b',
-              lineHeight: 1.6,
-              fontSize: '0.95rem',
-              position: 'relative',
-              pl: 0.5,
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                left: 0,
-                top: 0,
-                bottom: 0,
-                width: 2,
-                borderRadius: 4,
-                background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-                opacity: 0.5,
-              }
-            }}
-          >
-            <span style={{ fontWeight: 600, color: '#1e293b', marginRight: '6px' }}>{post.poster?.username}</span> 
-            {post.content}
-          </Typography>
-          {post.commentCount > 0 && (
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              sx={{ 
-                cursor: 'pointer', 
-                mb: 1.5,
-                color: '#64748b',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.5,
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                '&:hover': {
-                  color: '#2563eb',
-                  transform: 'translateX(4px)',
-                },
-              }}
-              onClick={() => toggleComments(post._id)}
-            >
-              {showComments[post._id] ? 'Hide' : 'View all'} {post.commentCount} comments
-              <Box 
-                component="span" 
+              {!post.poster?.avatar && post.poster?.username?.charAt(0)?.toUpperCase()}
+            </Avatar>
+            <Box sx={{ flex: 1 }}>
+              <Typography 
+                variant="h6" 
                 sx={{ 
-                  fontSize: '1rem', 
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                  transform: showComments[post._id] ? 'rotate(180deg)' : 'rotate(0deg)',
+                  fontWeight: 700,
+                  color: '#1e293b',
+                  fontSize: '1.1rem',
+                  mb: 0.5,
                 }}
               >
-                ↓
-              </Box>
-            </Typography>
-          )}
-          
-          {/* Comments Section */}
-          {showComments[post._id] && comments[post._id] && (
-            <Box 
-              sx={{ 
-                mt: 2,
-                animation: 'slideInUp 0.3s ease-out',
-                maxHeight: '300px',
-                overflowY: 'auto',
-                pr: 1,
-                mr: -1,
-                '&::-webkit-scrollbar': {
-                  width: '4px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: 'linear-gradient(135deg, #2563eb 0%, #3b82f6 100%)',
-                  borderRadius: '10px',
+                {post.title || 'Untitled Post'}
+              </Typography>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  color: '#64748b',
+                  fontSize: '0.875rem',
+                }}
+              >
+                by {post.poster?.username} • {new Date(post.createdAt).toLocaleDateString()}
+              </Typography>
+            </Box>
+          </Box>
+
+          {/* Post Description */}
+          <Typography 
+            variant="body1" 
+            sx={{ 
+              color: '#475569',
+              lineHeight: 1.6,
+              fontSize: '0.95rem',
+              mb: 2,
+              display: '-webkit-box',
+              WebkitLineClamp: 3,
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+            }}
+          >
+            {post.content}
+          </Typography>
+
+          {/* Action Buttons */}
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleLike(post._id);
+                }}
+                sx={{
+                  color: likedPosts.has(post._id) ? '#ef4444' : '#64748b',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'scale(1.1)',
+                    color: '#ef4444',
+                  },
+                }}
+              >
+                {likedPosts.has(post._id) ? <LikeIcon /> : <UnlikeIcon />}
+              </IconButton>
+              <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem' }}>
+                {post.likeCount || 0}
+              </Typography>
+              
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/post/${post._id}`);
+                }}
+                sx={{
+                  color: '#64748b',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&:hover': {
+                    transform: 'scale(1.1)',
+                    color: '#2563eb',
+                  },
+                }}
+              >
+                <CommentIcon />
+              </IconButton>
+              <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem' }}>
+                {post.commentCount || 0}
+              </Typography>
+            </Box>
+            
+            <IconButton
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSave(post._id);
+              }}
+              sx={{
+                color: savedPosts.has(post._id) ? '#f59e0b' : '#64748b',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                '&:hover': {
+                  transform: 'scale(1.1)',
+                  color: '#f59e0b',
                 },
               }}
             >
-              {comments[post._id].map((comment, index) => (
-                <Box 
-                  key={comment._id} 
-                  sx={{ 
-                    mb: 1.5,
-                    p: 1.5,
-                    borderRadius: '12px',
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    animation: `fadeInUp 0.3s ease-out ${index * 0.05}s`,
-                    '&:hover': {
-                      transform: 'translateY(-2px)',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                      borderColor: '#cbd5e1',
-                    }
-                  }}
-                >
-                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', lineHeight: 1.5 }}>
-                    <span 
-                      style={{ 
-                        fontWeight: 600, 
-                        color: 'white', 
-                        marginRight: '8px',
-                        cursor: 'pointer',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent',
-                      }}
-                      onClick={() => handleUserClick(comment.commenter?.username)}
-                    >
-                      {comment.commenter?.username}
-                    </span> 
-                    {comment.content}
-                  </Typography>
-                </Box>
-              ))}
-            </Box>
-          )}
-        </Box>
-
-        {/* Comment Input */}
-        <Box
-          sx={{
-            p: 2,
-            borderTop: '1px solid var(--glass-border)',
-            position: 'relative',
-            zIndex: 2,
-            background: 'var(--glass-gradient)',
-            backdropFilter: 'var(--glass-blur-sm)',
-            WebkitBackdropFilter: 'var(--glass-blur-sm)',
-            borderBottomLeftRadius: '24px',
-            borderBottomRightRadius: '24px',
-            transition: 'var(--transition-normal)',
-            '&:hover': {
-              boxShadow: 'var(--glass-shadow-sm)',
-            }
-          }}
-        >
-          <TextField
-            fullWidth
-            placeholder="Add a comment..."
-            variant="standard"
-            value={commentTexts[post._id] || ''}
-            onChange={(e) => setCommentTexts(prev => ({
-              ...prev,
-              [post._id]: e.target.value
-            }))}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                handleComment(post._id);
-              }
-            }}
-            sx={{
-              '& .MuiInput-root': {
-                color: 'white',
-                '&:before': {
-                  borderBottom: '1px solid var(--glass-border)',
-                },
-                '&:after': {
-                  borderBottom: '2px solid var(--primary-color)',
-                  background: 'var(--primary-gradient)',
-                },
-                '&:hover:before': {
-                  borderBottom: '1px solid var(--glass-border-hover)',
-                },
-              },
-              '& .MuiInput-input': {
-                color: 'white',
-                '&::placeholder': {
-                  color: 'rgba(255, 255, 255, 0.6)',
-                  opacity: 1,
-                },
-                transition: 'var(--transition-normal)',
-                padding: '8px 12px',
-                borderRadius: '8px',
-                '&:focus': {
-                  background: 'rgba(255, 255, 255, 0.05)',
-                }
-              },
-            }}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <Button
-                    variant="text"
-                    size="small"
-                    sx={{ 
-                      color: (commentTexts[post._id] || '').trim() ? 'var(--primary-color)' : 'rgba(255, 255, 255, 0.3)',
-                      fontWeight: 600,
-                      transition: 'var(--transition-normal)',
-                      position: 'relative',
-                      overflow: 'hidden',
-                      '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        inset: 0,
-                        background: 'var(--primary-gradient)',
-                        opacity: 0,
-                        transition: 'var(--transition-normal)',
-                        borderRadius: '4px',
-                        zIndex: -1,
-                      },
-                      '&:hover': {
-                        color: (commentTexts[post._id] || '').trim() ? 'white' : 'rgba(255, 255, 255, 0.3)',
-                        transform: (commentTexts[post._id] || '').trim() ? 'scale(1.05)' : 'none',
-                        '&::before': {
-                          opacity: (commentTexts[post._id] || '').trim() ? 0.8 : 0,
-                        }
-                      },
-                    }}
-                    onClick={() => handleComment(post._id)}
-                    disabled={!(commentTexts[post._id] || '').trim()}
-                  >
-                    Post
-                  </Button>
-                </InputAdornment>
-              ),
-            }}
-          />
+              {savedPosts.has(post._id) ? <SaveIcon /> : <UnsaveIcon />}
+            </IconButton>
+          </Box>
         </Box>
       </Box>
     </Fade>
