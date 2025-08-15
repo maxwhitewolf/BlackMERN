@@ -176,6 +176,7 @@ const HomeView = () => {
         const savedSet = new Set();
         
         posts.forEach(post => {
+          console.log(`Post ${post._id}: liked=${post.liked}, isSaved=${post.isSaved}`);
           if (post.liked) {
             likedSet.add(post._id);
           }
@@ -186,6 +187,7 @@ const HomeView = () => {
         
         console.log('Liked posts:', likedSet.size);
         console.log('Saved posts:', savedSet.size);
+        console.log('Liked post IDs:', Array.from(likedSet));
         
         setLikedPosts(likedSet);
         setSavedPosts(savedSet);
@@ -279,7 +281,11 @@ const HomeView = () => {
       
       const isLiked = likedPosts.has(postId);
       
-      console.log('Liking post:', postId, 'isLiked:', isLiked);
+      console.log('=== LIKE DEBUG ===');
+      console.log('Post ID:', postId);
+      console.log('Current liked state:', isLiked);
+      console.log('Current likedPosts Set:', Array.from(likedPosts));
+      console.log('User ID:', userData._id);
       
       const response = await fetch(`/api/posts/like/${postId}`, {
         method: isLiked ? 'DELETE' : 'POST',
@@ -292,29 +298,43 @@ const HomeView = () => {
         }),
       });
 
-      console.log('Like response:', response.status);
+      console.log('Like response status:', response.status);
+      console.log('Like response ok:', response.ok);
 
       if (response.ok) {
+        const responseData = await response.json();
+        console.log('Like response data:', responseData);
+        
         setLikedPosts(prev => {
           const newSet = new Set(prev);
+          console.log('Previous likedPosts:', Array.from(prev));
+          
           if (newSet.has(postId)) {
+            console.log('Removing post from liked set');
             newSet.delete(postId);
           } else {
+            console.log('Adding post to liked set');
             newSet.add(postId);
           }
+          
+          console.log('New likedPosts:', Array.from(newSet));
           return newSet;
         });
         
         // Update the post's like count in the posts array
         setPosts(prev => prev.map(post => {
           if (post._id === postId) {
+            const newLikeCount = isLiked ? Math.max(0, (post.likeCount || 1) - 1) : (post.likeCount || 0) + 1;
+            console.log('Updating post like count from', post.likeCount, 'to', newLikeCount);
             return {
               ...post,
-              likeCount: isLiked ? Math.max(0, (post.likeCount || 1) - 1) : (post.likeCount || 0) + 1
+              likeCount: newLikeCount
             };
           }
           return post;
         }));
+        
+        console.log('=== LIKE SUCCESS ===');
       } else {
         const errorData = await response.json();
         console.error('Like error:', errorData);

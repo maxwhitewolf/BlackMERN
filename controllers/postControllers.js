@@ -151,18 +151,32 @@ const deletePost = async (req, res) => {
 };
 
 const setLiked = async (posts, userId) => {
-  if (!userId) return;
+  if (!userId) {
+    console.log('setLiked: No userId provided');
+    return;
+  }
+  
+  console.log(`setLiked: Setting liked status for ${posts.length} posts for user ${userId}`);
   
   const userPostLikes = await PostLike.find({ userId });
+  console.log(`setLiked: Found ${userPostLikes.length} liked posts for user`);
 
   posts.forEach((post) => {
+    let isLiked = false;
     userPostLikes.forEach((userPostLike) => {
       if (userPostLike.postId.equals(post._id)) {
         post.liked = true;
+        isLiked = true;
+        console.log(`setLiked: Post ${post._id} is liked by user`);
         return;
       }
     });
+    if (!isLiked) {
+      post.liked = false;
+    }
   });
+  
+  console.log(`setLiked: Processed ${posts.length} posts`);
 };
 
 const setSaved = async (posts, userId) => {
@@ -334,6 +348,8 @@ const likePost = async (req, res) => {
     const postId = req.params.id;
     const { userId } = req.body;
 
+    console.log(`likePost: Attempting to like post ${postId} by user ${userId}`);
+
     if (!userId) {
       throw new Error("User ID is required");
     }
@@ -347,19 +363,23 @@ const likePost = async (req, res) => {
     const existingPostLike = await PostLike.findOne({ postId, userId });
 
     if (existingPostLike) {
+      console.log(`likePost: Post ${postId} already liked by user ${userId}`);
       throw new Error("Post already liked");
     }
 
     const postLike = await PostLike.create({ postId, userId });
+    console.log(`likePost: Created like for post ${postId} by user ${userId}`);
 
     post.likeCount += 1;
     await post.save();
+    console.log(`likePost: Updated like count for post ${postId} to ${post.likeCount}`);
 
     // Create notification for post owner
     await createNotification(post.poster, userId, "like", postId);
 
     return res.json(postLike);
   } catch (err) {
+    console.error(`likePost error:`, err.message);
     return res.status(400).json({ error: err.message });
   }
 };
@@ -368,6 +388,8 @@ const unlikePost = async (req, res) => {
   try {
     const postId = req.params.id;
     const { userId } = req.body;
+
+    console.log(`unlikePost: Attempting to unlike post ${postId} by user ${userId}`);
 
     if (!userId) {
       throw new Error("User ID is required");
@@ -382,17 +404,21 @@ const unlikePost = async (req, res) => {
     const existingPostLike = await PostLike.findOne({ postId, userId });
 
     if (!existingPostLike) {
+      console.log(`unlikePost: Post ${postId} not liked by user ${userId}`);
       throw new Error("Post is already not liked");
     }
 
     await existingPostLike.deleteOne();
+    console.log(`unlikePost: Removed like for post ${postId} by user ${userId}`);
 
     post.likeCount = Math.max(0, (await PostLike.find({ postId })).length);
 
     await post.save();
+    console.log(`unlikePost: Updated like count for post ${postId} to ${post.likeCount}`);
 
     return res.json({ success: true });
   } catch (err) {
+    console.error(`unlikePost error:`, err.message);
     return res.status(400).json({ error: err.message });
   }
 };
