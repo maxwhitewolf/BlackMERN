@@ -29,27 +29,31 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
 const PostContainer = styled(Box)(({ theme }) => ({
-  height: '100vh',
+  minHeight: '100vh',
   display: 'flex',
   flexDirection: 'column',
+  alignItems: 'center',
+  justifyContent: 'center',
   backgroundColor: theme.palette.background.default,
   position: 'relative',
+  padding: '24px 0',
 }));
 
 const PostCard = styled(Card)(({ theme }) => ({
-  flex: 1,
-  margin: '16px',
+  width: '100%',
+  maxWidth: '600px',
+  margin: '0 auto',
   borderRadius: 16,
   overflow: 'hidden',
   boxShadow: '0 8px 32px rgba(0,0,0,0.1)',
   display: 'flex',
   flexDirection: 'column',
-  maxHeight: 'calc(100vh - 32px)',
+  maxHeight: '80vh',
 }));
 
 const PostMedia = styled(CardMedia)(({ theme }) => ({
-  flex: 1,
-  minHeight: 0,
+  height: 'auto',
+  maxHeight: '500px',
   backgroundSize: 'cover',
   backgroundPosition: 'center',
   position: 'relative',
@@ -152,12 +156,17 @@ const PostView = () => {
   const handleLike = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: 'POST',
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
+      const response = await fetch(`/api/posts/like/${post._id}`, {
+        method: liked ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          userId: userData._id
+        }),
       });
 
       if (response.ok) {
@@ -172,12 +181,17 @@ const PostView = () => {
   const handleSave = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/posts/${postId}/save`, {
-        method: 'POST',
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
+      const response = await fetch(`/api/posts/save/${post._id}`, {
+        method: saved ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          userId: userData._id
+        }),
       });
 
       if (response.ok) {
@@ -243,15 +257,22 @@ const PostView = () => {
   return (
     <PostContainer>
       <Fade in={true} timeout={300}>
-        <PostCard>
+        <PostCard elevation={6}>
           {/* Header */}
           <CardHeader
             avatar={
               <Avatar
-                src={post.poster?.avatar || `https://ui-avatars.com/api/?name=${post.poster?.username}&background=random`}
-                sx={{ cursor: 'pointer' }}
-                onClick={() => navigate(`/profile/${post.poster?.username}`)}
-              />
+                src={post.poster?.avatar}
+                sx={{
+                  width: 50,
+                  height: 50,
+                  background: post.poster?.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                }}
+              >
+                {!post.poster?.avatar && post.poster?.username?.charAt(0)?.toUpperCase()}
+              </Avatar>
             }
             title={
               <Typography
@@ -277,7 +298,7 @@ const PostView = () => {
           {/* Media */}
           <PostMedia
             component="img"
-            image={post.image || `https://picsum.photos/600/800?random=${post._id}`}
+            image={post.image || ''}
             alt={post.title}
           />
 
@@ -347,7 +368,7 @@ const PostView = () => {
         <NavigationFab
           size="small"
           onClick={() => handleNavigate('prev')}
-          sx={{ left: 16, top: '50%', transform: 'translateY(-50%)' }}
+          sx={{ left: { xs: 8, sm: 16, md: 'calc(50% - 320px)' }, top: '50%', transform: 'translateY(-50%)' }}
         >
           <PrevIcon />
         </NavigationFab>
@@ -357,7 +378,7 @@ const PostView = () => {
         <NavigationFab
           size="small"
           onClick={() => handleNavigate('next')}
-          sx={{ right: 16, top: '50%', transform: 'translateY(-50%)' }}
+          sx={{ right: { xs: 8, sm: 16, md: 'calc(50% - 320px)' }, top: '50%', transform: 'translateY(-50%)' }}
         >
           <NextIcon />
         </NavigationFab>
@@ -367,7 +388,7 @@ const PostView = () => {
       <NavigationFab
         size="small"
         onClick={handleClose}
-        sx={{ right: 16, top: 16 }}
+        sx={{ right: { xs: 8, sm: 16 }, top: 16, zIndex: 1200 }}
       >
         <CloseIcon />
       </NavigationFab>

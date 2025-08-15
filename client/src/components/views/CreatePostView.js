@@ -7,10 +7,8 @@ import {
   TextField,
   Button,
   Typography,
-  IconButton,
-  Avatar,
-  Chip,
   Divider,
+  Avatar,
 } from '@mui/material';
 import {
   PhotoCamera as PhotoIcon,
@@ -27,18 +25,92 @@ const Input = styled('input')({
 
 const ImagePreview = styled(Box)(({ theme }) => ({
   width: '100%',
-  height: 400,
-  borderRadius: 8,
+  height: 500,
+  borderRadius: 20,
   overflow: 'hidden',
-  border: `2px dashed ${theme.palette.divider}`,
+  border: '2px dashed rgba(0, 149, 246, 0.3)',
+  background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.8) 0%, rgba(30, 30, 30, 0.6) 100%)',
+  backdropFilter: 'blur(10px)',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   cursor: 'pointer',
-  transition: 'all 0.3s ease-in-out',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'linear-gradient(135deg, rgba(0, 149, 246, 0.1) 0%, rgba(77, 181, 255, 0.05) 100%)',
+    opacity: 0,
+    transition: 'opacity 0.4s ease',
+  },
   '&:hover': {
-    borderColor: theme.palette.primary.main,
-    backgroundColor: theme.palette.action.hover,
+    borderColor: '#0095f6',
+    backgroundColor: 'rgba(0, 149, 246, 0.05)',
+    transform: 'scale(1.02)',
+    boxShadow: '0 8px 30px rgba(0, 149, 246, 0.2)',
+    '&::before': {
+      opacity: 1,
+    },
+  },
+}));
+
+const StyledCard = styled(Card)(({ theme }) => ({
+  backgroundColor: 'rgba(30, 30, 30, 0.95)',
+  backdropFilter: 'blur(20px)',
+  border: '1px solid rgba(38, 38, 38, 0.8)',
+  borderRadius: 24,
+  overflow: 'hidden',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'translateY(-4px)',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
+    borderColor: 'rgba(0, 149, 246, 0.3)',
+  },
+}));
+
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  '& .MuiOutlinedInput-root': {
+    borderRadius: 16,
+    backgroundColor: 'rgba(26, 26, 26, 0.8)',
+    backdropFilter: 'blur(10px)',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    '&:hover': {
+      backgroundColor: 'rgba(38, 38, 38, 0.8)',
+    },
+    '&.Mui-focused': {
+      backgroundColor: 'rgba(38, 38, 38, 0.8)',
+      '& .MuiOutlinedInput-notchedOutline': {
+        borderColor: '#0095f6',
+        borderWidth: '2px',
+      },
+    },
+  },
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  borderRadius: 16,
+  padding: '12px 32px',
+  fontSize: '1rem',
+  fontWeight: 700,
+  textTransform: 'none',
+  background: 'linear-gradient(135deg, #0095f6 0%, #4db5ff 100%)',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    background: 'linear-gradient(135deg, #0081d6 0%, #3da3e6 100%)',
+    transform: 'translateY(-2px)',
+    boxShadow: '0 8px 25px rgba(0, 149, 246, 0.4)',
+  },
+  '&:active': {
+    transform: 'translateY(0)',
+  },
+  '&:disabled': {
+    background: 'rgba(108, 108, 108, 0.3)',
+    color: 'rgba(255, 255, 255, 0.5)',
   },
 }));
 
@@ -78,8 +150,8 @@ const CreatePostView = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedImage) {
-      alert('Please select an image');
+    if (!caption.trim()) {
+      alert('Please write a caption for your post');
       return;
     }
 
@@ -87,17 +159,26 @@ const CreatePostView = () => {
     
     try {
       const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
+      // Create FormData to send both text data and image file
       const formData = new FormData();
-      formData.append('title', caption);
+      formData.append('title', caption || 'Untitled Post');
       formData.append('content', caption);
-      formData.append('image', selectedImage);
       formData.append('location', location);
-      formData.append('tags', tags.split(' ').filter(tag => tag.trim()));
-
+      formData.append('tags', JSON.stringify(tags.split(' ').filter(tag => tag.trim())));
+      formData.append('userId', userData._id);
+      
+      // Add the image file if selected
+      if (selectedImage) {
+        formData.append('image', selectedImage);
+      }
+      
       const response = await fetch('/api/posts', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
+          // Don't set Content-Type for FormData, let browser set it with boundary
         },
         body: formData,
       });
@@ -156,13 +237,21 @@ const CreatePostView = () => {
           Create New Post
         </Typography>
 
-        <Card sx={{ mb: 3 }}>
+        <StyledCard sx={{ mb: 3 }}>
           <CardContent>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
               <Avatar
-                src={currentUser.avatar || `https://ui-avatars.com/api/?name=${currentUser.username}&background=random`}
-                sx={{ width: 40, height: 40, mr: 2 }}
-              />
+                src={currentUser.avatar}
+                sx={{
+                  width: 50,
+                  height: 50,
+                  background: currentUser.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                }}
+              >
+                {!currentUser.avatar && currentUser.username?.charAt(0)?.toUpperCase()}
+              </Avatar>
               <Typography variant="body1" sx={{ fontWeight: 600 }}>
                 {currentUser.username}
               </Typography>
@@ -190,6 +279,9 @@ const CreatePostView = () => {
                         <Typography variant="body2" color="text.secondary">
                           PNG, JPG up to 10MB
                         </Typography>
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                          (Optional - placeholder will be used if no image selected)
+                        </Typography>
                       </Box>
                     )}
                   </ImagePreview>
@@ -205,7 +297,7 @@ const CreatePostView = () => {
               <Divider sx={{ mb: 3 }} />
 
               {/* Caption */}
-              <TextField
+              <StyledTextField
                 fullWidth
                 multiline
                 rows={4}
@@ -218,7 +310,7 @@ const CreatePostView = () => {
               {/* Location */}
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <LocationIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                <TextField
+                <StyledTextField
                   fullWidth
                   placeholder="Add location"
                   value={location}
@@ -230,7 +322,7 @@ const CreatePostView = () => {
               {/* Tags */}
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <TagIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                <TextField
+                <StyledTextField
                   fullWidth
                   placeholder="Add tags (separated by spaces)"
                   value={tags}
@@ -241,20 +333,20 @@ const CreatePostView = () => {
               </Box>
 
               {/* Submit Button */}
-              <Button
+              <StyledButton
                 type="submit"
                 variant="contained"
                 fullWidth
                 size="large"
-                disabled={!selectedImage || loading}
+                disabled={!caption.trim() || loading}
                 startIcon={<SendIcon />}
                 sx={{ mt: 2 }}
               >
-                {loading ? 'Creating Post...' : 'Share Post'}
-              </Button>
+                {loading ? 'Creating Post...' : selectedImage ? 'Share Post with Image' : 'Share Post (with placeholder image)'}
+              </StyledButton>
             </form>
           </CardContent>
-        </Card>
+        </StyledCard>
       </Box>
     </Container>
   );

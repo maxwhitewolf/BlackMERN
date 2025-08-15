@@ -1,5 +1,5 @@
 const jwt = require("jsonwebtoken");
-let users = [];
+let users = {}; // { userId: socketId }
 
 const authSocket = (socket, next) => {
   let token = socket.handshake.auth.token;
@@ -19,20 +19,46 @@ const authSocket = (socket, next) => {
 
 const socketServer = (socket) => {
   const userId = socket.decoded.userId;
-  users.push({ userId, socketId: socket.id });
+  users[userId] = socket.id;
 
   socket.on("send-message", (recipientUserId, username, content) => {
-    const recipient = users.find((user) => user.userId == recipientUserId);
-    if (recipient) {
+    const recipientSocketId = users[recipientUserId];
+    if (recipientSocketId) {
       socket
-        .to(recipient.socketId)
+        .to(recipientSocketId)
         .emit("receive-message", userId, username, content);
     }
   });
 
   socket.on("disconnect", () => {
-    users = users.filter((user) => user.userId != userId);
+    delete users[userId];
   });
 };
 
-module.exports = { socketServer, authSocket };
+// Function to emit notification to a specific user
+const emitNotification = (recipientId, notification) => {
+  const recipientSocketId = users[recipientId];
+  if (recipientSocketId) {
+    const io = require('socket.io');
+    const server = require('./server');
+    const socket = server.io.sockets.sockets.get(recipientSocketId);
+    if (socket) {
+      socket.emit('new_notification', notification);
+    }
+  }
+};
+
+// Function to emit unread count update to a specific user
+const emitUnreadCount = (recipientId, count) => {
+  const recipientSocketId = users[recipientId];
+  if (recipientSocketId) {
+    const io = require('socket.io');
+    const server = require('./server');
+    const socket = server.io.sockets.sockets.get(recipientSocketId);
+    if (socket) {
+      socket.emit('unread_count_update', { count });
+    }
+  }
+};
+
+module.exports = { socketServer, authSocket, emitNotification, emitUnreadCount };

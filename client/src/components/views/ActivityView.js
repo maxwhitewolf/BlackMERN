@@ -21,6 +21,7 @@ import {
   PersonAdd as FollowIcon,
   Bookmark as SaveIcon,
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
 const ActivityCard = styled(Card)(({ theme }) => ({
@@ -35,6 +36,7 @@ const ActivityCard = styled(Card)(({ theme }) => ({
 }));
 
 const ActivityView = () => {
+  const navigate = useNavigate();
   const [activities, setActivities] = useState([]);
   const [loading, setLoading] = useState(true);
 

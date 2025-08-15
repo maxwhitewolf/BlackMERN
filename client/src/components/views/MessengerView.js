@@ -2,28 +2,23 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
-  Card,
-  CardContent,
-  Avatar,
   Typography,
-  TextField,
-  IconButton,
+  Avatar,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Divider,
+  TextField,
   InputAdornment,
   Skeleton,
-  Fade,
+  IconButton,
   Badge,
-  Chip,
 } from '@mui/material';
 import {
   Send as SendIcon,
   Search as SearchIcon,
-  MoreVert as MoreIcon,
   Circle as OnlineIcon,
+  MoreVert as MoreIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
@@ -93,22 +88,25 @@ const MessengerView = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
       const response = await fetch('/api/users/random?size=10', {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          userId: userData._id
+        }),
       });
 
       if (response.ok) {
-        const usersData = await response.json();
-        setUsers(usersData);
-      } else {
-        setUsers([]);
+        const users = await response.json();
+        setUsers(users);
       }
     } catch (error) {
       console.error('Error fetching users:', error);
-      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -117,11 +115,17 @@ const MessengerView = () => {
   const fetchMessages = async (userId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/messages/${userId}`, {
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
+      const response = await fetch(`/api/messages/user/${userId}`, {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          userId: userData._id
+        }),
       });
 
       if (response.ok) {
@@ -242,13 +246,17 @@ const MessengerView = () => {
                           }
                         >
                           <Avatar
-                            src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
-                            sx={{ width: 48, height: 48, cursor: 'pointer' }}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleUserClick(user.username);
+                            src={user.avatar}
+                            sx={{
+                              width: 50,
+                              height: 50,
+                              background: user.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              color: 'white',
+                              fontWeight: 600,
                             }}
-                          />
+                          >
+                            {!user.avatar && user.username?.charAt(0)?.toUpperCase()}
+                          </Avatar>
                         </Badge>
                       </ListItemAvatar>
                       <ListItemText
@@ -290,10 +298,17 @@ const MessengerView = () => {
                 {/* Chat Header */}
                 <Box sx={{ p: 2, borderBottom: `1px solid ${theme => theme.palette.divider}`, display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Avatar
-                    src={selectedUser.avatar || `https://ui-avatars.com/api/?name=${selectedUser.username}&background=random`}
-                    sx={{ width: 40, height: 40, cursor: 'pointer' }}
-                    onClick={() => handleUserClick(selectedUser.username)}
-                  />
+                    src={selectedUser.avatar}
+                  sx={{
+                      width: 50,
+                      height: 50,
+                      background: selectedUser.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {!selectedUser.avatar && selectedUser.username?.charAt(0)?.toUpperCase()}
+                  </Avatar>
                   <Box sx={{ flex: 1 }}>
                     <Typography
                       variant="body1"
@@ -314,19 +329,24 @@ const MessengerView = () => {
                 {/* Messages Area */}
                 <Box sx={{ flex: 1, p: 2, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
                   {messages.length > 0 ? (
-                    messages.map((message, index) => (
-                      <MessageBubble
-                        key={index}
-                        isOwn={message.sender === 'currentUser'}
-                      >
-                        <Typography variant="body2">
-                          {message.content}
-                        </Typography>
-                        <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mt: 0.5 }}>
-                          {new Date(message.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </Typography>
-                      </MessageBubble>
-                    ))
+                    messages.map((message, index) => {
+                      const currentUser = JSON.parse(localStorage.getItem('user'));
+                      const isOwnMessage = message.sender?._id === currentUser?._id || message.sender === currentUser?._id;
+                      
+                      return (
+                        <MessageBubble
+                          key={index}
+                          isOwn={isOwnMessage}
+                        >
+                          <Typography variant="body2">
+                            {message.content}
+                          </Typography>
+                          <Typography variant="caption" sx={{ opacity: 0.7, display: 'block', mt: 0.5 }}>
+                            {new Date(message.createdAt || Date.now()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </Typography>
+                        </MessageBubble>
+                      );
+                    })
                   ) : (
                     <Box sx={{ textAlign: 'center', py: 4, flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Typography variant="body2" color="text.secondary">

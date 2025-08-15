@@ -8,27 +8,17 @@ import {
   Typography,
   Button,
   Chip,
-  Grid,
   Card,
   CardContent,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Divider,
   Skeleton,
   Fade,
-  IconButton,
   Tabs,
   Tab,
 } from '@mui/material';
 import {
   Search as SearchIcon,
-  TrendingUp as TrendingIcon,
   PersonAdd as FollowIcon,
   PersonRemove as UnfollowIcon,
-  LocationOn as LocationIcon,
-  Tag as TagIcon,
   Article as PostIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
@@ -36,59 +26,135 @@ import { styled } from '@mui/material/styles';
 
 const SearchContainer = styled(Box)(({ theme }) => ({
   padding: '24px 0',
+  background: 'rgba(255, 255, 255, 0.1)',
+  borderRadius: 20,
+  border: '1px solid rgba(255, 255, 255, 0.2)',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    background: 'rgba(255, 255, 255, 0.15)',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
+  },
 }));
 
 const SearchInput = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    borderRadius: 24,
-    backgroundColor: theme.palette.background.surface,
-    '& fieldset': {
-      borderColor: theme.palette.divider,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    border: '2px solid rgba(255, 255, 255, 0.2)',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    fontSize: '1.1rem',
+    padding: '12px 20px',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderColor: 'rgba(102, 126, 234, 0.4)',
+      transform: 'translateY(-1px)',
+      boxShadow: '0 4px 12px rgba(102, 126, 234, 0.2)',
     },
-    '&:hover fieldset': {
-      borderColor: theme.palette.primary.main,
+    '&.Mui-focused': {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderColor: '#667eea',
+      boxShadow: '0 0 0 4px rgba(102, 126, 234, 0.1)',
+      transform: 'translateY(-1px)',
     },
-    '&.Mui-focused fieldset': {
-      borderColor: theme.palette.primary.main,
+    '& input': {
+      color: 'rgba(255, 255, 255, 0.9)',
+      '&::placeholder': {
+        color: 'rgba(255, 255, 255, 0.5)',
+        opacity: 1,
+      },
     },
+  },
+  '& .MuiInputAdornment-root': {
+    color: 'rgba(255, 255, 255, 0.6)',
   },
 }));
 
 const UserCard = styled(Card)(({ theme }) => ({
-  marginBottom: 8,
-  backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.divider}`,
-  borderRadius: 12,
-  transition: 'all 0.2s ease-in-out',
+  marginBottom: 12,
+  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.15)',
+  borderRadius: 16,
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   cursor: 'pointer',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(77, 181, 255, 0.02) 100%)',
+    opacity: 0,
+    transition: 'opacity 0.4s ease',
+  },
   '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+    transform: 'translateY(-4px) scale(1.02)',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
+    borderColor: 'rgba(102, 126, 234, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    '&::before': {
+      opacity: 1,
+    },
   },
 }));
 
 const PostCard = styled(Card)(({ theme }) => ({
-  marginBottom: 8,
-  backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.divider}`,
-  borderRadius: 12,
-  transition: 'all 0.2s ease-in-out',
+  marginBottom: 12,
+  backgroundColor: 'rgba(255, 255, 255, 0.08)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.15)',
+  borderRadius: 16,
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   cursor: 'pointer',
+  position: 'relative',
+  overflow: 'hidden',
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: 'linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(77, 181, 255, 0.02) 100%)',
+    opacity: 0,
+    transition: 'opacity 0.4s ease',
+  },
   '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+    transform: 'translateY(-4px) scale(1.02)',
+    boxShadow: '0 12px 40px rgba(0, 0, 0, 0.3)',
+    borderColor: 'rgba(102, 126, 234, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+    '&::before': {
+      opacity: 1,
+    },
   },
 }));
 
-const TrendingCard = styled(Card)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.divider}`,
-  borderRadius: 12,
-  transition: 'all 0.2s ease-in-out',
-  cursor: 'pointer',
-  '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
+const StyledButton = styled(Button)(({ theme }) => ({
+  borderRadius: 20,
+  padding: '8px 20px',
+  fontWeight: 600,
+  textTransform: 'none',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&.follow': {
+    background: 'linear-gradient(135deg, #0095f6 0%, #4db5ff 100%)',
+    '&:hover': {
+      background: 'linear-gradient(135deg, #0081d6 0%, #3da3e6 100%)',
+      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 25px rgba(0, 149, 246, 0.4)',
+    },
+  },
+  '&.unfollow': {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 59, 48, 0.1)',
+      borderColor: '#ff3b30',
+      color: '#ff3b30',
+    },
   },
 }));
 
@@ -96,7 +162,6 @@ const SearchView = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState({ users: [], posts: [] });
-  const [trendingTopics, setTrendingTopics] = useState([]);
   const [suggestedUsers, setSuggestedUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -104,37 +169,40 @@ const SearchView = () => {
 
   useEffect(() => {
     fetchSuggestedUsers();
-    fetchTrendingTopics();
   }, []);
 
   const fetchSuggestedUsers = async () => {
     try {
       const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
       const response = await fetch('/api/users/random?size=5', {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          userId: userData._id
+        }),
       });
 
       if (response.ok) {
         const users = await response.json();
         setSuggestedUsers(users);
+        
+        // Update followingUsers state based on isFollowing status
+        const followingSet = new Set();
+        users.forEach(user => {
+          if (user.isFollowing) {
+            followingSet.add(user._id);
+          }
+        });
+        setFollowingUsers(followingSet);
       }
     } catch (error) {
       console.error('Error fetching suggested users:', error);
     }
-  };
-
-  const fetchTrendingTopics = async () => {
-    // Mock trending topics for now
-    setTrendingTopics([
-      { id: 1, topic: '#photography', posts: 1250 },
-      { id: 2, topic: '#travel', posts: 890 },
-      { id: 3, topic: '#food', posts: 756 },
-      { id: 4, topic: '#fitness', posts: 634 },
-      { id: 5, topic: '#art', posts: 521 },
-    ]);
   };
 
   const handleSearch = async (query) => {
@@ -219,9 +287,17 @@ const SearchView = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               <Avatar
-                src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
-                sx={{ width: 48, height: 48 }}
-              />
+                src={user.avatar}
+                sx={{ 
+                  width: 48, 
+                  height: 48,
+                  background: user.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  fontWeight: 600,
+                }}
+              >
+                {!user.avatar && user.username?.charAt(0)?.toUpperCase()}
+              </Avatar>
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                   <Typography variant="body1" sx={{ fontWeight: 600 }}>
@@ -248,7 +324,7 @@ const SearchView = () => {
                 </Typography>
               </Box>
             </Box>
-            <Button
+            <StyledButton
               variant={followingUsers.has(user._id) ? "outlined" : "contained"}
               size="small"
               onClick={(e) => {
@@ -256,18 +332,10 @@ const SearchView = () => {
                 handleFollow(user._id);
               }}
               startIcon={followingUsers.has(user._id) ? <UnfollowIcon /> : <FollowIcon />}
-              sx={{
-                minWidth: 100,
-                borderColor: followingUsers.has(user._id) ? '#dbdbdb' : '#0095f6',
-                color: followingUsers.has(user._id) ? '#262626' : '#ffffff',
-                '&:hover': {
-                  borderColor: followingUsers.has(user._id) ? '#ff6b6b' : '#0081d6',
-                  color: followingUsers.has(user._id) ? '#ff6b6b' : '#ffffff',
-                },
-              }}
+              className={followingUsers.has(user._id) ? 'unfollow' : 'follow'}
             >
               {followingUsers.has(user._id) ? 'Following' : 'Follow'}
-            </Button>
+            </StyledButton>
           </Box>
         </CardContent>
       </UserCard>
@@ -280,9 +348,17 @@ const SearchView = () => {
         <CardContent sx={{ py: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Avatar
-              src={post.poster?.avatar || `https://ui-avatars.com/api/?name=${post.poster?.username}&background=random`}
-              sx={{ width: 40, height: 40 }}
-            />
+              src={post.poster?.avatar}
+              sx={{ 
+                width: 40, 
+                height: 40,
+                background: post.poster?.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                color: 'white',
+                fontWeight: 600,
+              }}
+            >
+              {!post.poster?.avatar && post.poster?.username?.charAt(0)?.toUpperCase()}
+            </Avatar>
             <Box sx={{ flex: 1 }}>
               <Typography variant="body1" sx={{ fontWeight: 600, mb: 0.5 }}>
                 {post.poster?.username}
@@ -298,26 +374,6 @@ const SearchView = () => {
           </Box>
         </CardContent>
       </PostCard>
-    </Fade>
-  );
-
-  const TrendingTopicCard = ({ topic }) => (
-    <Fade in={true} timeout={300}>
-      <TrendingCard>
-        <CardContent sx={{ py: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <TagIcon sx={{ color: 'primary.main' }} />
-            <Box sx={{ flex: 1 }}>
-              <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                {topic.topic}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {topic.posts.toLocaleString()} posts
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
-      </TrendingCard>
     </Fade>
   );
 
@@ -385,33 +441,17 @@ const SearchView = () => {
             )}
           </Box>
         ) : (
-          // Default View - Trending and Suggestions
-          <Grid container spacing={3}>
-            {/* Trending Topics */}
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <TrendingIcon />
-                Trending Topics
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {trendingTopics.map((topic) => (
-                  <TrendingTopicCard key={topic.id} topic={topic} />
-                ))}
-              </Box>
-            </Grid>
-
-            {/* Suggested Users */}
-            <Grid item xs={12} md={6}>
-              <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
-                Suggested for You
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {suggestedUsers.map((user) => (
-                  <UserListItem key={user._id} user={user} />
-                ))}
-              </Box>
-            </Grid>
-          </Grid>
+          // Default View - Only Suggested Users
+          <Box>
+            <Typography variant="h6" sx={{ mb: 3, fontWeight: 600, textAlign: 'center' }}>
+              Discover People
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 500, mx: 'auto' }}>
+              {suggestedUsers.map((user) => (
+                <UserListItem key={user._id} user={user} />
+              ))}
+            </Box>
+          </Box>
         )}
       </Box>
     </Container>

@@ -3,16 +3,18 @@ const Post = require("../models/Post");
 const User = require("../models/User");
 const Comment = require("../models/Comment");
 const PostLike = require("../models/PostLike");
+const Save = require("../models/Save");
 const Follow = require("../models/Follow");
 const paginate = require("../util/paginate");
 const cooldown = new Set();
+const { createNotification } = require("./notificationControllers");
 
 USER_LIKES_PAGE_SIZE = 9;
 
 const createPost = async (req, res) => {
   try {
     const { title, content, location, tags, userId } = req.body;
-    let image = req.body.image || "";
+    let image = "";
 
     if (!(title && content)) {
       throw new Error("Title and content are required");
@@ -29,19 +31,31 @@ const createPost = async (req, res) => {
       cooldown.delete(userId);
     }, 60000);
 
-    // Handle image upload if provided
+    // Handle uploaded image file
     if (req.file) {
-      // For now, we'll use a placeholder image URL
-      // In production, you'd upload to a service like AWS S3 or Cloudinary
-      image = `https://picsum.photos/600/600?random=${Date.now()}`;
+      // Convert buffer to base64 for storage
+      const base64Image = req.file.buffer.toString('base64');
+      const mimeType = req.file.mimetype;
+      image = `data:${mimeType};base64,${base64Image}`;
+    }
+    // If no image uploaded, leave image as empty string
+
+    // Parse tags if they come as JSON string
+    let parsedTags = [];
+    if (tags) {
+      try {
+        parsedTags = JSON.parse(tags);
+      } catch (e) {
+        parsedTags = tags.split(' ').filter(tag => tag.trim());
+      }
     }
 
     const post = await Post.create({
       title,
       content,
-      image: image || "",
+      image: image,
       location: location || "",
-      tags: tags ? (Array.isArray(tags) ? tags : tags.split(' ').filter(tag => tag.trim())) : [],
+      tags: parsedTags,
       poster: userId,
     });
 
@@ -73,6 +87,7 @@ const getPost = async (req, res) => {
 
     if (userId) {
       await setLiked([post], userId);
+      await setSaved([post], userId);
     }
 
     await enrichWithUserLikePreview([post]);
@@ -151,6 +166,22 @@ const setLiked = async (posts, userId) => {
   });
 };
 
+const setSaved = async (posts, userId) => {
+  let searchCondition = {};
+  if (userId) searchCondition = { user: userId };
+
+  const userSavedPosts = await Save.find(searchCondition);
+
+  posts.forEach((post) => {
+    userSavedPosts.forEach((savedPost) => {
+      if (savedPost.post.equals(post._id)) {
+        post.isSaved = true;
+        return;
+      }
+    });
+  });
+};
+
 const enrichWithUserLikePreview = async (posts) => {
   const postMap = posts.reduce((result, post) => {
     result[post._id] = post;
@@ -211,40 +242,50 @@ const getUserLikedPosts = async (req, res) => {
 const getPosts = async (req, res) => {
   try {
     const { userId } = req.body;
+    const { page, limit, search, own } = req.query;
 
-    let { page, sortBy, author, search, liked } = req.query;
-
-    if (!sortBy) sortBy = "-createdAt";
-    if (!page) page = 1;
-
-    let posts = await Post.find()
-      .populate("poster", "username avatar fullName")
-      .sort(sortBy)
-      .lean();
-
-    if (author) {
-      posts = posts.filter((post) => post.poster.username == author);
-    }
+    const query = {};
 
     if (search) {
-      posts = posts.filter((post) =>
-        post.title.toLowerCase().includes(search.toLowerCase())
-      );
+      query.content = { $regex: search, $options: "i" };
     }
 
-    const count = posts.length;
+    if (own === "true" && userId) {
+      query.poster = userId;
+    }
 
-    posts = paginate(posts, 10, page);
+    const count = await Post.countDocuments(query);
+
+    const { hasNext, hasPrev, nextPage, prevPage } = await paginate(
+      page,
+      limit,
+      count
+    );
+
+    const posts = await Post.find(query)
+      .populate("poster", "username avatar fullName")
+      .sort("-createdAt")
+      .limit(limit * 1)
+      .skip((page - 1) * limit)
+      .lean();
 
     if (userId) {
       await setLiked(posts, userId);
+      await setSaved(posts, userId);
     }
 
     await enrichWithUserLikePreview(posts);
 
-    return res.json({ data: posts, count });
+    return res.json({
+      data: posts,
+      pagination: {
+        hasNext,
+        hasPrev,
+        nextPage,
+        prevPage,
+      },
+    });
   } catch (err) {
-    console.log(err.message);
     return res.status(400).json({ error: err.message });
   }
 };
@@ -274,6 +315,7 @@ const getHomeFeed = async (req, res) => {
       .limit(parseInt(limit));
 
     await setLiked(posts, userId);
+    await setSaved(posts, userId);
     await enrichWithUserLikePreview(posts);
 
     const total = await Post.countDocuments({ poster: { $in: followingIds } });
@@ -303,23 +345,18 @@ const likePost = async (req, res) => {
     const existingPostLike = await PostLike.findOne({ postId, userId });
 
     if (existingPostLike) {
-      throw new Error("Post is already liked");
+      throw new Error("Post already liked");
     }
 
-    await PostLike.create({
-      postId,
-      userId,
-    });
+    const postLike = await PostLike.create({ postId, userId });
 
-    post.likeCount = (await PostLike.find({ postId })).length;
-
+    post.likeCount += 1;
     await post.save();
 
-    // Create activity for like
-    const { createActivity } = require("./activityControllers");
-    await createActivity(userId, post.poster, "like", postId);
+    // Create notification for post owner
+    await createNotification(post.poster, userId, "like", postId);
 
-    return res.json({ success: true });
+    return res.json(postLike);
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
@@ -412,6 +449,7 @@ const searchPosts = async (req, res) => {
 
     if (userId) {
       await setLiked(posts, userId);
+      await setSaved(posts, userId);
     }
 
     await enrichWithUserLikePreview(posts);
@@ -440,6 +478,7 @@ const getExplorePosts = async (req, res) => {
 
     if (userId) {
       await setLiked(posts, userId);
+      await setSaved(posts, userId);
     }
 
     await enrichWithUserLikePreview(posts);
@@ -447,6 +486,97 @@ const getExplorePosts = async (req, res) => {
     return res.status(200).json(posts);
   } catch (err) {
     console.error('Explore posts error:', err);
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+const savePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { userId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      throw new Error("Post does not exist");
+    }
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      throw new Error("Post does not exist");
+    }
+
+    const existingSave = await Save.findOne({ user: userId, post: postId });
+
+    if (existingSave) {
+      throw new Error("Post already saved");
+    }
+
+    await Save.create({
+      user: userId,
+      post: postId,
+    });
+
+    return res.json({ success: true, message: "Post saved successfully" });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+const unsavePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const { userId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(postId)) {
+      throw new Error("Post does not exist");
+    }
+
+    const save = await Save.findOneAndDelete({ user: userId, post: postId });
+
+    if (!save) {
+      throw new Error("Post not saved");
+    }
+
+    return res.json({ success: true, message: "Post unsaved successfully" });
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+};
+
+const getSavedPosts = async (req, res) => {
+  try {
+    const userId = req.body.userId;
+    const { page = 1, limit = 20 } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required" });
+    }
+
+    const skip = (page - 1) * limit;
+
+    const saves = await Save.find({ user: userId })
+      .populate({
+        path: "post",
+        populate: {
+          path: "poster",
+          select: "username avatar fullName",
+        },
+      })
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(parseInt(limit))
+      .lean();
+
+    const posts = saves.map((save) => save.post).filter(Boolean);
+
+    if (posts.length > 0) {
+      await setLiked(posts, userId);
+      await enrichWithUserLikePreview(posts);
+    }
+
+    return res.status(200).json(posts);
+  } catch (err) {
+    console.error('Get saved posts error:', err);
     return res.status(400).json({ error: err.message });
   }
 };
@@ -460,6 +590,9 @@ module.exports = {
   deletePost,
   likePost,
   unlikePost,
+  savePost,
+  unsavePost,
+  getSavedPosts,
   getUserLikedPosts,
   getUserLikes,
   searchPosts,

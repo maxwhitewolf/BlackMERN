@@ -1,6 +1,5 @@
 import {
   Button,
-  Card,
   IconButton,
   Stack,
   Typography,
@@ -25,8 +24,8 @@ import Markdown from "./Markdown";
 import "./postCard.css";
 import { MdCancel } from "react-icons/md";
 import { BiTrash } from "react-icons/bi";
-import { BsReplyFill } from "react-icons/bs";
 import UserLikePreview from "./UserLikePreview";
+import GlassCard from "./ui/GlassCard";
 
 const PostCard = (props) => {
   const { preview, removePost } = props;
@@ -92,17 +91,18 @@ const PostCard = (props) => {
   };
 
   return (
-    <Card sx={{ padding: 0 }} className="post-card">
+    <GlassCard sx={{ p: 0, overflow: 'hidden' }}>
       <Box className={preview}>
         <HorizontalStack spacing={0} alignItems="initial">
           <Stack
-            justifyContent="space-between "
+            justifyContent="space-between"
             alignItems="center"
             spacing={1}
             sx={{
-              backgroundColor: "grey.100",
-              width: "50px",
-              padding: theme.spacing(1),
+              width: 64,
+              px: 1,
+              py: 2,
+              borderRight: '1px solid rgba(255,255,255,0.06)'
             }}
           >
             <LikeBox
@@ -120,34 +120,32 @@ const PostCard = (props) => {
                 preview={preview === "secondary"}
               />
               <Box>
-                {user &&
-                  (isAuthor || user.isAdmin) &&
-                  preview !== "secondary" && (
-                    <HorizontalStack>
-                      <IconButton
-                        disabled={loading}
-                        size="small"
-                        onClick={handleEditPost}
-                      >
-                        {editing ? (
-                          <MdCancel color={iconColor} />
-                        ) : (
-                          <AiFillEdit color={iconColor} />
-                        )}
-                      </IconButton>
-                      <IconButton
-                        disabled={loading}
-                        size="small"
-                        onClick={handleDeletePost}
-                      >
-                        {confirm ? (
-                          <AiFillCheckCircle color={theme.palette.error.main} />
-                        ) : (
-                          <BiTrash color={theme.palette.error.main} />
-                        )}
-                      </IconButton>
-                    </HorizontalStack>
-                  )}
+                {user && (isAuthor || user.isAdmin) && preview !== "secondary" && (
+                  <HorizontalStack>
+                    <IconButton
+                      disabled={loading}
+                      size="small"
+                      onClick={handleEditPost}
+                    >
+                      {editing ? (
+                        <MdCancel color={iconColor} />
+                      ) : (
+                        <AiFillEdit color={iconColor} />
+                      )}
+                    </IconButton>
+                    <IconButton
+                      disabled={loading}
+                      size="small"
+                      onClick={handleDeletePost}
+                    >
+                      {confirm ? (
+                        <AiFillCheckCircle color={theme.palette.error.main} />
+                      ) : (
+                        <BiTrash color={theme.palette.error.main} />
+                      )}
+                    </IconButton>
+                  </HorizontalStack>
+                )}
               </Box>
             </HorizontalStack>
 
@@ -160,21 +158,18 @@ const PostCard = (props) => {
               {post.title}
             </Typography>
 
-            {preview !== "secondary" &&
-              (editing ? (
+            {preview !== "secondary" && (
+              editing ? (
                 <ContentUpdateEditor
                   handleSubmit={handleSubmit}
                   originalContent={post.content}
                 />
               ) : (
-                <Box
-                  maxHeight={maxHeight}
-                  overflow="hidden"
-                  className="content"
-                >
+                <Box maxHeight={maxHeight} overflow="hidden" className="content">
                   <Markdown content={post.content} />
                 </Box>
-              ))}
+              )
+            )}
 
             <HorizontalStack sx={{ mt: 2 }} justifyContent="space-between">
               <HorizontalStack>
@@ -182,7 +177,7 @@ const PostCard = (props) => {
                 <Typography
                   variant="subtitle2"
                   color="text.secondary"
-                  sx={{ fontWeight: "bold" }}
+                  sx={{ fontWeight: 700, ml: 0.5 }}
                 >
                   {post.commentCount}
                 </Typography>
@@ -197,7 +192,7 @@ const PostCard = (props) => {
           </PostContentBox>
         </HorizontalStack>
       </Box>
-    </Card>
+    </GlassCard>
   );
 };
 

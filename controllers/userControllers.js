@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const Follow = require("../models/Follow");
 const { default: mongoose } = require("mongoose");
+const { createNotification } = require("./notificationControllers");
 
 const getUserDict = (token, user) => {
   return {
@@ -115,6 +116,9 @@ const follow = async (req, res) => {
 
     const follow = await Follow.create({ userId, followingId });
 
+    // Create notification for followed user
+    await createNotification(followingId, userId, "follow");
+
     // Create activity for follow
     const { createActivity } = require("./activityControllers");
     await createActivity(userId, followingId, "follow");
@@ -139,7 +143,8 @@ const follow = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    const { userId, biography } = req.body;
+    const { userId, biography, fullName, location, website } = req.body;
+    let avatar = "";
 
     const user = await User.findById(userId);
 
@@ -147,13 +152,45 @@ const updateUser = async (req, res) => {
       throw new Error("User does not exist");
     }
 
-    if (typeof biography == "string") {
+    // Handle uploaded avatar file
+    if (req.file) {
+      // Convert buffer to base64 for storage
+      const base64Image = req.file.buffer.toString('base64');
+      const mimeType = req.file.mimetype;
+      avatar = `data:${mimeType};base64,${base64Image}`;
+      user.avatar = avatar;
+    }
+
+    // Update other fields
+    if (typeof biography === "string") {
       user.biography = biography;
+    }
+    if (typeof fullName === "string") {
+      user.fullName = fullName;
+    }
+    if (typeof location === "string") {
+      user.location = location;
+    }
+    if (typeof website === "string") {
+      user.website = website;
     }
 
     await user.save();
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ 
+      success: true,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        biography: user.biography,
+        avatar: user.avatar,
+        website: user.website,
+        location: user.location,
+        isAdmin: user.isAdmin,
+      }
+    });
   } catch (err) {
     return res.status(400).json({ error: err.message });
   }
@@ -262,6 +299,11 @@ const getRandomUsers = async (req, res) => {
     let { size } = req.query;
     const { userId } = req.body;
 
+    // Ensure userId is provided and valid
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Valid user ID is required" });
+    }
+
     // Get all users except the current user
     let users = await User.find({ _id: { $ne: userId } }).select("-password");
 
@@ -283,9 +325,14 @@ const getRandomUsers = async (req, res) => {
       
       // Add follower count to each user
       const followerCount = await Follow.countDocuments({ followingId: randomUser._id });
+      
+      // Check if current user is following this user
+      const isFollowing = await Follow.findOne({ userId, followingId: randomUser._id });
+      
       const userWithCount = {
         ...randomUser.toObject(),
-        followerCount
+        followerCount,
+        isFollowing: !!isFollowing
       };
       
       randomUsers.push(userWithCount);

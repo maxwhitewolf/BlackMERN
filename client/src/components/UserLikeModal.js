@@ -11,10 +11,43 @@ const styles = {
     top: "50%",
     transform: "translate(-50%, -50%)",
     width: 400,
-    maxWidth: "80%",
-    maxHeight: 400,
+    maxWidth: "90%",
+    maxHeight: "80vh",
     overflowY: "auto",
+    borderRadius: 3,
+    padding: 2,
+    '&::-webkit-scrollbar': {
+      width: '8px',
+    },
+    '&::-webkit-scrollbar-thumb': {
+      backgroundColor: 'rgba(255, 255, 255, 0.2)',
+      borderRadius: '4px',
+    },
+    '&::-webkit-scrollbar-track': {
+      backgroundColor: 'rgba(0, 0, 0, 0.1)',
+      borderRadius: '4px',
+    },
   },
+  card: {
+    background: 'var(--glass-bg)',
+    backdropFilter: 'var(--glass-blur)',
+    WebkitBackdropFilter: 'var(--glass-blur)',
+    border: '1px solid var(--glass-border)',
+    boxShadow: 'var(--glass-shadow-lg)',
+    borderRadius: 3,
+    padding: 3,
+    transition: 'var(--transition-normal)',
+    animation: 'scaleIn 0.3s ease-out',
+  },
+  title: {
+    borderBottom: '1px solid var(--glass-border-light)',
+    paddingBottom: 2,
+    marginBottom: 2,
+    fontWeight: 600,
+    background: 'var(--glass-gradient)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+  }
 };
 
 const UserLikeModal = ({ postId, open, setOpen }) => {
@@ -82,7 +115,20 @@ const UserLikeModal = ({ postId, open, setOpen }) => {
       open={open}
       onClose={handleClose}
       BackdropComponent={Backdrop}
-      BackdropProps={{ onClick: handleBackdropClick }}
+      BackdropProps={{
+        onClick: handleBackdropClick,
+        sx: {
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          backdropFilter: 'blur(4px)',
+          WebkitBackdropFilter: 'blur(4px)',
+          transition: 'var(--transition-normal)'
+        }
+      }}
+      sx={{
+        '& .MuiBackdrop-root': {
+          opacity: '1 !important'
+        }
+      }}
     >
       <Box
         sx={styles.container}
@@ -91,8 +137,8 @@ const UserLikeModal = ({ postId, open, setOpen }) => {
           e.stopPropagation();
         }}
       >
-        <Card>
-          <Typography variant="h5" mb={2}>
+        <Card sx={styles.card}>
+          <Typography variant="h5" sx={styles.title}>
             Liked by
           </Typography>
           <Stack>

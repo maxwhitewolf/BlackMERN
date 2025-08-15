@@ -2,24 +2,29 @@ import React, { useState, useEffect } from 'react';
 import {
   Box,
   Container,
-  Card,
-  CardContent,
-  Avatar,
   Typography,
   TextField,
   Button,
+  Avatar,
   IconButton,
-  Divider,
+  Card,
+  CardContent,
   Skeleton,
   Fade,
   Alert,
+  Divider,
 } from '@mui/material';
 import {
+  AddPhotoAlternate as AddPhotoIcon,
+  Close as CloseIcon,
   ArrowBack as BackIcon,
+  CameraAlt as CameraIcon,
   Save as SaveIcon,
-  PhotoCamera as CameraIcon,
 } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+import { updateUser } from '../../api/users';
+import { isLoggedIn } from '../../helpers/authHelper';
+import ErrorAlert from '../ErrorAlert';
 import { styled } from '@mui/material/styles';
 
 const EditContainer = styled(Box)(({ theme }) => ({
@@ -225,9 +230,19 @@ const EditProfileView = () => {
                 <ProfileSection>
                   <AvatarSection>
                     <Avatar
-                      src={formData.avatar || `https://ui-avatars.com/api/?name=${formData.fullName}&background=random`}
-                      sx={{ width: 80, height: 80 }}
-                    />
+                      src={formData.avatar}
+                      sx={{
+                        width: 100,
+                        height: 100,
+                        border: '3px solid rgba(255, 255, 255, 0.2)',
+                        background: formData.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        fontWeight: 600,
+                        fontSize: '2.5rem',
+                      }}
+                    >
+                      {!formData.avatar && formData.fullName?.charAt(0)?.toUpperCase()}
+                    </Avatar>
                     <input
                       accept="image/*"
                       style={{ display: 'none' }}

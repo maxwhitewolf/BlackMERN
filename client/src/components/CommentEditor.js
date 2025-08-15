@@ -48,16 +48,57 @@ const CommentEditor = ({ label, comment, addComment, setReplying }) => {
   };
 
   return (
-    <Card>
+    <Card sx={{
+      background: 'var(--glass-bg)',
+      backdropFilter: 'var(--glass-blur)',
+      WebkitBackdropFilter: 'var(--glass-blur)',
+      border: '1px solid var(--glass-border)',
+      boxShadow: 'var(--glass-shadow)',
+      borderRadius: 3,
+      p: 2,
+      transition: 'var(--transition-normal)',
+      '&:hover': {
+        boxShadow: 'var(--glass-shadow-lg)',
+        borderColor: 'var(--glass-border-hover)'
+      }
+    }}>
       <Stack spacing={2}>
         <HorizontalStack justifyContent="space-between">
           <Typography variant="h5">
             {comment ? <>Reply</> : <>Comment</>}
           </Typography>
           <Typography>
-            <a href="https://commonmark.org/help/" target="_blank">
+            <Box
+              component="a"
+              href="https://commonmark.org/help/"
+              target="_blank"
+              rel="noopener noreferrer"
+              sx={{
+                color: 'primary.main',
+                textDecoration: 'none',
+                position: 'relative',
+                transition: 'var(--transition-fast)',
+                '&:hover': {
+                  color: 'primary.light',
+                  textShadow: '0 0 8px rgba(16, 163, 127, 0.6)',
+                  '&::after': {
+                    width: '100%'
+                  }
+                },
+                '&::after': {
+                  content: '""',
+                  position: 'absolute',
+                  bottom: -2,
+                  left: 0,
+                  width: 0,
+                  height: '2px',
+                  background: 'var(--glass-gradient)',
+                  transition: 'var(--transition-fast)'
+                }
+              }}
+            >
               Markdown Help
-            </a>
+            </Box>
           </Typography>
         </HorizontalStack>
 
@@ -70,7 +111,27 @@ const CommentEditor = ({ label, comment, addComment, setReplying }) => {
             required
             name="content"
             sx={{
-              backgroundColor: "white",
+              '& .MuiOutlinedInput-root': {
+                background: 'var(--glass-bg-light)',
+                backdropFilter: 'var(--glass-blur-sm)',
+                WebkitBackdropFilter: 'var(--glass-blur-sm)',
+                border: '1px solid var(--glass-border-light)',
+                borderRadius: 2,
+                transition: 'var(--transition-normal)',
+                '&:hover': {
+                  borderColor: 'var(--glass-border-hover)'
+                },
+                '&.Mui-focused': {
+                  borderColor: 'primary.main',
+                  boxShadow: 'var(--glass-focus)'
+                }
+              },
+              '& .MuiInputLabel-root': {
+                color: 'rgba(255, 255, 255, 0.7)'
+              },
+              '& .MuiOutlinedInput-notchedOutline': {
+                border: 'none'
+              }
             }}
             onChange={handleChange}
             onFocus={handleFocus}
@@ -79,16 +140,39 @@ const CommentEditor = ({ label, comment, addComment, setReplying }) => {
 
           <ErrorAlert error={error} sx={{ my: 4 }} />
           <Button
-            variant="outlined"
+            variant="contained"
             type="submit"
             fullWidth
             disabled={loading}
             sx={{
-              backgroundColor: "white",
+              background: 'var(--glass-bg)',
+              backdropFilter: 'var(--glass-blur)',
+              WebkitBackdropFilter: 'var(--glass-blur)',
+              border: '1px solid var(--glass-border)',
+              borderRadius: 2,
+              color: 'primary.main',
+              fontWeight: 600,
               mt: 2,
+              p: 1.5,
+              transition: 'var(--transition-normal)',
+              '&:hover': {
+                background: 'var(--glass-bg-light)',
+                borderColor: 'var(--glass-border-hover)',
+                boxShadow: 'var(--glass-shadow)',
+                transform: 'translateY(-2px)'
+              },
+              '&:active': {
+                transform: 'translateY(0)',
+                boxShadow: 'var(--glass-shadow-sm)'
+              },
+              '&.Mui-disabled': {
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                color: 'rgba(255, 255, 255, 0.3)'
+              }
             }}
           >
-            {loading ? <div>Submitting</div> : <div>Submit</div>}
+            {loading ? <div>Submitting...</div> : <div>Submit</div>}
           </Button>
         </Box>
       </Stack>

@@ -67,16 +67,33 @@ const getUserLikes = async (postId, anchor) => {
   }
 };
 
-const createPost = async (post, user) => {
+const createPost = async (post, user, imageFile = null) => {
   try {
+    let body;
+    let headers = {
+      "x-access-token": user.token,
+    };
+
+    if (imageFile) {
+      // Use FormData for file upload
+      const formData = new FormData();
+      formData.append('title', post.title);
+      formData.append('content', post.content);
+      formData.append('image', imageFile);
+      
+      body = formData;
+      // Don't set Content-Type for FormData, let browser set it with boundary
+    } else {
+      // Use JSON for text-only posts
+      headers["Accept"] = "application/json";
+      headers["Content-Type"] = "application/json";
+      body = JSON.stringify(post);
+    }
+
     const res = await fetch(BASE_URL + "api/posts", {
       method: "POST",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-        "x-access-token": user.token,
-      },
-      body: JSON.stringify(post),
+      headers: headers,
+      body: body,
     });
     return await res.json();
   } catch (err) {

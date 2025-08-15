@@ -27,40 +27,105 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
-const ProfileHeader = styled(Box)(({ theme }) => ({
-  padding: '32px 0',
-  borderBottom: `1px solid ${theme.palette.divider}`,
-}));
-
-const ProfileStats = styled(Box)(({ theme }) => ({
-  display: 'flex',
-  alignItems: 'center',
-  gap: 32,
-  marginBottom: 24,
-}));
-
-const StatItem = styled(Box)(({ theme }) => ({
-  textAlign: 'center',
-  cursor: 'pointer',
-  transition: 'opacity 0.2s ease-in-out',
+const ProfileContainer = styled(Box)(({ theme }) => ({
+  background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(18, 18, 18, 0.9) 100%)',
+  backdropFilter: 'blur(20px)',
+  borderRadius: 24,
+  overflow: 'hidden',
+  border: '1px solid rgba(38, 38, 38, 0.8)',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   '&:hover': {
-    opacity: 0.7,
+    transform: 'translateY(-4px)',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
+    borderColor: 'rgba(0, 149, 246, 0.3)',
   },
 }));
 
-const PostGrid = styled(Grid)(({ theme }) => ({
-  marginTop: 24,
+const ProfileHeader = styled(Box)(({ theme }) => ({
+  background: 'linear-gradient(135deg, rgba(26, 26, 26, 0.9) 0%, rgba(30, 30, 30, 0.8) 100%)',
+  backdropFilter: 'blur(20px)',
+  padding: '32px 24px',
+  borderBottom: '1px solid rgba(38, 38, 38, 0.5)',
+}));
+
+const ProfileAvatar = styled(Avatar)(({ theme }) => ({
+  width: 120,
+  height: 120,
+  border: '4px solid rgba(0, 149, 246, 0.3)',
+  boxShadow: '0 8px 32px rgba(0, 149, 246, 0.3)',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'scale(1.05)',
+    borderColor: '#0095f6',
+    boxShadow: '0 12px 40px rgba(0, 149, 246, 0.5)',
+  },
+}));
+
+const StatsCard = styled(Card)(({ theme }) => ({
+  backgroundColor: 'rgba(30, 30, 30, 0.8)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(38, 38, 38, 0.6)',
+  borderRadius: 16,
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    transform: 'translateY(-2px)',
+    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
+    borderColor: 'rgba(0, 149, 246, 0.3)',
+  },
+}));
+
+const StyledButton = styled(Button)(({ theme }) => ({
+  borderRadius: 20,
+  padding: '10px 24px',
+  fontWeight: 700,
+  textTransform: 'none',
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&.follow': {
+    background: 'linear-gradient(135deg, #0095f6 0%, #4db5ff 100%)',
+    '&:hover': {
+      background: 'linear-gradient(135deg, #0081d6 0%, #3da3e6 100%)',
+      transform: 'translateY(-2px)',
+      boxShadow: '0 8px 25px rgba(0, 149, 246, 0.4)',
+    },
+  },
+  '&.unfollow': {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 59, 48, 0.1)',
+      borderColor: '#ff3b30',
+      color: '#ff3b30',
+    },
+  },
+  '&.edit': {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.15)',
+      transform: 'translateY(-2px)',
+    },
+  },
+}));
+
+const PostGrid = styled(Box)(({ theme }) => ({
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+  gap: 24,
+  padding: '24px',
 }));
 
 const PostCard = styled(Card)(({ theme }) => ({
-  position: 'relative',
+  backgroundColor: 'rgba(30, 30, 30, 0.8)',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(38, 38, 38, 0.6)',
+  borderRadius: 16,
+  overflow: 'hidden',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
   cursor: 'pointer',
-  transition: 'all 0.3s ease-in-out',
   '&:hover': {
-    transform: 'scale(1.02)',
-    '& .overlay': {
-      opacity: 1,
-    },
+    transform: 'translateY(-8px) scale(1.02)',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
+    borderColor: 'rgba(0, 149, 246, 0.3)',
   },
 }));
 
@@ -102,7 +167,7 @@ const ProfileView = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        setLoading(true);
+    setLoading(true);
         setError('');
 
         // Get current user from localStorage
@@ -167,7 +232,7 @@ const ProfileView = () => {
         setProfile(null);
         setPosts([]);
       } finally {
-        setLoading(false);
+    setLoading(false);
       }
     };
 
@@ -277,139 +342,149 @@ const ProfileView = () => {
       <Box sx={{ maxWidth: 600, mx: 'auto' }}>
         {profile ? (
           <Fade in={true} timeout={500}>
-            <ProfileHeader>
-              <Grid container spacing={4} alignItems="center">
-                {/* Profile Avatar */}
-                <Grid item xs={12} sm={4}>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Avatar
-                      src={profile.avatar || `https://ui-avatars.com/api/?name=${profile.username}&background=random`}
-                      sx={{
-                        width: 96,
-                        height: 96,
-                        mx: 'auto',
-                        mb: 2,
-                        border: '3px solid #262626',
-                      }}
-                    />
-                  </Box>
-                </Grid>
-
-                {/* Profile Info */}
-                <Grid item xs={12} sm={8}>
-                  <Box sx={{ mb: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                      <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                        {profile.username}
-                      </Typography>
-                      {profile.isAdmin && (
-                        <Chip
-                          label="✓"
-                          size="small"
-                          sx={{
-                            backgroundColor: '#0095f6',
-                            color: 'white',
-                            fontSize: '0.6rem',
-                          }}
-                        />
-                      )}
-                      
-                      {!isOwnProfile ? (
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={handleFollow}
-                          startIcon={isFollowing ? <UnfollowIcon /> : <FollowIcon />}
-                          sx={{
-                            borderColor: isFollowing ? '#dbdbdb' : '#0095f6',
-                            color: isFollowing ? '#262626' : '#0095f6',
-                            '&:hover': {
-                              borderColor: isFollowing ? '#ff6b6b' : '#0081d6',
-                              color: isFollowing ? '#ff6b6b' : '#0081d6',
-                            },
-                          }}
-                        >
-                          {isFollowing ? 'Following' : 'Follow'}
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="outlined"
-                          size="small"
-                          onClick={handleEditProfile}
-                          startIcon={<EditIcon />}
-                          sx={{
-                            borderColor: '#dbdbdb',
-                            color: '#262626',
-                            '&:hover': {
-                              borderColor: '#0095f6',
-                              color: '#0095f6',
-                            },
-                          }}
-                        >
-                          Edit Profile
-                        </Button>
-                      )}
-                      
-                      <IconButton size="small">
-                        <SettingsIcon />
-                      </IconButton>
-                    </Box>
-
-                    {/* Stats */}
-                    <ProfileStats>
-                      <StatItem>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {posts.length}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          posts
-                        </Typography>
-                      </StatItem>
-                      <StatItem>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {profile.followerCount?.toLocaleString() || 0}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          followers
-                        </Typography>
-                      </StatItem>
-                      <StatItem>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                          {profile.followingCount?.toLocaleString() || 0}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          following
-                        </Typography>
-                      </StatItem>
-                    </ProfileStats>
-
-                    {/* Bio */}
-                    <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
-                      {profile.fullName || profile.username}
-                    </Typography>
-                    {profile.biography && (
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        {profile.biography}
-                      </Typography>
-                    )}
-                    {profile.website && (
-                      <Typography
-                        variant="body2"
-                        color="primary.main"
-                        sx={{ cursor: 'pointer', textDecoration: 'none' }}
+            <ProfileContainer>
+              <ProfileHeader>
+                <Grid container spacing={4} alignItems="center">
+                  {/* Profile Avatar */}
+                  <Grid item xs={12} sm={4}>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Avatar
+                        src={profile.avatar}
+                        sx={{
+                          width: 120,
+                          height: 120,
+                          border: '4px solid rgba(255, 255, 255, 0.2)',
+                          background: profile.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          color: 'white',
+                          fontWeight: 600,
+                          fontSize: '3rem',
+                        }}
                       >
-                        {profile.website}
+                        {!profile.avatar && profile.username?.charAt(0)?.toUpperCase()}
+                      </Avatar>
+                    </Box>
+                  </Grid>
+
+                  {/* Profile Info */}
+                  <Grid item xs={12} sm={8}>
+                    <Box sx={{ mb: 3 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                        <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                          {profile.username}
+                        </Typography>
+                        {profile.isAdmin && (
+                          <Chip
+                            label="✓"
+                            size="small"
+                            sx={{
+                              backgroundColor: '#0095f6',
+                              color: 'white',
+                              fontSize: '0.6rem',
+                            }}
+                          />
+                        )}
+                        
+                        {!isOwnProfile ? (
+                          <StyledButton
+                            variant="outlined"
+                            size="small"
+                            onClick={handleFollow}
+                            className={isFollowing ? 'unfollow' : 'follow'}
+                            startIcon={isFollowing ? <UnfollowIcon /> : <FollowIcon />}
+                            sx={{
+                              borderColor: isFollowing ? '#dbdbdb' : '#0095f6',
+                              color: isFollowing ? '#262626' : '#0095f6',
+                              '&:hover': {
+                                borderColor: isFollowing ? '#ff6b6b' : '#0081d6',
+                                color: isFollowing ? '#ff6b6b' : '#0081d6',
+                              },
+                            }}
+                          >
+                            {isFollowing ? 'Following' : 'Follow'}
+                          </StyledButton>
+                        ) : (
+                          <StyledButton
+                            variant="outlined"
+                            size="small"
+                            onClick={handleEditProfile}
+                            className="edit"
+                            startIcon={<EditIcon />}
+                            sx={{
+                              borderColor: '#dbdbdb',
+                              color: '#262626',
+                              '&:hover': {
+                                borderColor: '#0095f6',
+                                color: '#0095f6',
+                              },
+                            }}
+                          >
+                            Edit Profile
+                          </StyledButton>
+                        )}
+                        
+                        <IconButton size="small">
+                          <SettingsIcon />
+                        </IconButton>
+                      </Box>
+
+                      {/* Stats */}
+                      <StatsCard>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-around', py: 2 }}>
+                          <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                              {posts.length}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              posts
+                            </Typography>
+                          </Box>
+                          <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                              {profile.followerCount?.toLocaleString() || 0}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              followers
+                            </Typography>
+                          </Box>
+                          <Box sx={{ textAlign: 'center' }}>
+                            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                              {profile.followingCount?.toLocaleString() || 0}
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                              following
+                            </Typography>
+                          </Box>
+                        </Box>
+                      </StatsCard>
+
+                      {/* Bio */}
+                      <Typography variant="body1" sx={{ fontWeight: 600, mb: 1 }}>
+                        {profile.fullName || profile.username}
                       </Typography>
-                    )}
-                    {profile.location && (
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                        📍 {profile.location}
-                      </Typography>
-                    )}
-                  </Box>
+                      {profile.biography && (
+                        <Typography variant="body2" sx={{ mb: 1 }}>
+                          {profile.biography}
+                        </Typography>
+              )}
+                      {profile.website && (
+                        <Typography
+                          variant="body2"
+                          color="primary.main"
+                          sx={{ cursor: 'pointer', textDecoration: 'none' }}
+                        >
+                          {profile.website}
+                        </Typography>
+                      )}
+                      {profile.location && (
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                          📍 {profile.location}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Grid>
                 </Grid>
-              </Grid>
-            </ProfileHeader>
+              </ProfileHeader>
+            </ProfileContainer>
           </Fade>
         ) : (
           <Box sx={{ textAlign: 'center', py: 4 }}>
@@ -450,66 +525,66 @@ const ProfileView = () => {
         </Box>
 
         {/* Posts Grid */}
-        <PostGrid container spacing={1}>
+        <PostGrid>
           {posts.length > 0 ? (
             posts.map((post) => (
-              <Grid item xs={4} key={post._id}>
-                <PostCard onClick={() => handlePostClick(post._id)}>
-                  <CardMedia
-                    component="img"
-                    image={post.image || `https://picsum.photos/300/300?random=${post._id}`}
-                    alt="Post"
-                    sx={{ aspectRatio: '1/1', objectFit: 'cover' }}
-                  />
-                  <PostOverlay className="overlay">
-                    <Box sx={{ textAlign: 'center', color: 'white' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        ♥ {post.likeCount || 0}
-                      </Typography>
-                      <Typography variant="body2">
-                        💬 {post.commentCount || 0}
-                      </Typography>
-                    </Box>
-                  </PostOverlay>
-                </PostCard>
-              </Grid>
+              <PostCard key={post._id} onClick={() => handlePostClick(post._id)}>
+                <CardMedia
+                  component="img"
+                  image={post.image || ''}
+                  alt="Post"
+                  sx={{ 
+                    aspectRatio: '1/1', 
+                    objectFit: 'cover',
+                    backgroundColor: post.image ? 'transparent' : 'rgba(255, 255, 255, 0.1)'
+                  }}
+                />
+                <PostOverlay className="overlay">
+                  <Box sx={{ textAlign: 'center', color: 'white' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                      ♥ {post.likeCount || 0}
+                    </Typography>
+                    <Typography variant="body2">
+                      💬 {post.commentCount || 0}
+                    </Typography>
+                  </Box>
+                </PostOverlay>
+              </PostCard>
             ))
           ) : (
-            <Grid item xs={12}>
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Box sx={{ mb: 3 }}>
-                  <IconButton
-                    sx={{
-                      width: 80,
-                      height: 80,
-                      border: '2px dashed',
-                      borderColor: 'divider',
-                      color: 'text.secondary',
-                    }}
-                  >
-                    <AddIcon sx={{ fontSize: 40 }} />
-                  </IconButton>
-                </Box>
-                <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                  {isOwnProfile ? 'Share your first post!' : 'No posts yet'}
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  {isOwnProfile 
-                    ? 'Start sharing your moments with the world' 
-                    : 'This user hasn\'t posted anything yet'
-                  }
-                </Typography>
-                {isOwnProfile && (
-                  <Button
-                    variant="contained"
-                    onClick={handleCreatePost}
-                    startIcon={<AddIcon />}
-                  >
-                    Create Post
-                  </Button>
-                )}
+            <Box sx={{ textAlign: 'center', py: 8 }}>
+              <Box sx={{ mb: 3 }}>
+                <IconButton
+                  sx={{
+                    width: 80,
+                    height: 80,
+                    border: '2px dashed',
+                    borderColor: 'divider',
+                    color: 'text.secondary',
+                  }}
+                >
+                  <AddIcon sx={{ fontSize: 40 }} />
+                </IconButton>
               </Box>
-            </Grid>
+              <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
+                {isOwnProfile ? 'Share your first post!' : 'No posts yet'}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                {isOwnProfile 
+                  ? 'Start sharing your moments with the world' 
+                  : 'This user hasn\'t posted anything yet'
+                }
+              </Typography>
+              {isOwnProfile && (
+                <Button
+                  variant="contained"
+                  onClick={handleCreatePost}
+                  startIcon={<AddIcon />}
+                >
+                  Create Post
+                </Button>
+              )}
+            </Box>
           )}
         </PostGrid>
       </Box>

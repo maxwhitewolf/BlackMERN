@@ -1,89 +1,127 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  Card,
-  CardContent,
-  CardMedia,
-  Avatar,
+  Container,
   Typography,
-  IconButton,
+  Avatar,
   Button,
   Chip,
-  Divider,
-  TextField,
-  InputAdornment,
-  Grid,
-  Container,
-  Skeleton,
-  Fade,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
+  Skeleton,
+  Fade,
+  IconButton,
+  TextField,
+  InputAdornment,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import {
-  Favorite as FavoriteIcon,
-  FavoriteBorder as FavoriteBorderIcon,
-  ChatBubbleOutline as CommentIcon,
-  Send as SendIcon,
-  BookmarkBorder as BookmarkIcon,
-  Bookmark as BookmarkFilledIcon,
+  Favorite as LikeIcon,
+  FavoriteBorder as UnlikeIcon,
+  Bookmark as SaveIcon,
+  BookmarkBorder as UnsaveIcon,
+  Comment as CommentIcon,
+  Share as ShareIcon,
   MoreVert as MoreIcon,
   LocationOn as LocationIcon,
   AccessTime as TimeIcon,
   PersonAdd as FollowIcon,
   PersonRemove as UnfollowIcon,
+  Send as SendIcon,
+  Search as SearchIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { styled } from '@mui/material/styles';
 
-const StyledCard = styled(Card)(({ theme }) => ({
-  marginBottom: 16,
-  backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.divider}`,
-  borderRadius: 12,
+const StyledCard = styled(Box)(({ theme }) => ({
+  marginBottom: 24,
+  backgroundColor: 'rgba(30, 30, 30, 0.8)',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  border: '1px solid rgba(38, 38, 38, 0.6)',
+  borderRadius: 16,
   overflow: 'hidden',
-  transition: 'all 0.3s ease-in-out',
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative',
   '&:hover': {
-    transform: 'translateY(-2px)',
-    boxShadow: '0 8px 25px rgba(0, 0, 0, 0.3)',
+    transform: 'translateY(-8px) scale(1.02)',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
+    borderColor: 'rgba(0, 149, 246, 0.3)',
   },
 }));
 
 const PostHeader = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  padding: '12px 16px',
-  gap: 12,
+  padding: '16px 20px',
+  gap: 16,
+  borderBottom: `1px solid rgba(38, 38, 38, 0.5)`,
+  position: 'relative',
+  zIndex: 1,
 }));
 
 const PostActions = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
-  padding: '8px 16px',
+  padding: '12px 20px',
+  borderTop: `1px solid rgba(38, 38, 38, 0.5)`,
+  borderBottom: `1px solid rgba(38, 38, 38, 0.5)`,
+  position: 'relative',
+  zIndex: 1,
 }));
 
 const ActionButtons = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
-  gap: 8,
+  gap: 12,
+  position: 'relative',
 }));
 
 const PostFooter = styled(Box)(({ theme }) => ({
-  padding: '0 16px 16px',
+  padding: '16px 20px',
+  position: 'relative',
+  zIndex: 1,
 }));
 
 const CommentSection = styled(Box)(({ theme }) => ({
-  padding: '12px 16px',
-  borderTop: `1px solid ${theme.palette.divider}`,
+  padding: '16px 20px',
+  borderTop: `1px solid rgba(38, 38, 38, 0.5)`,
+  position: 'relative',
+  zIndex: 1,
+  animation: 'fadeInUp 0.3s ease-out',
 }));
 
-const SuggestedUsersCard = styled(Card)(({ theme }) => ({
-  backgroundColor: theme.palette.background.paper,
-  border: `1px solid ${theme.palette.divider}`,
-  borderRadius: 12,
-  marginBottom: 16,
+const SuggestedUsersCard = styled(Box)(({ theme }) => ({
+  backgroundColor: 'rgba(30, 30, 30, 0.8)',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  border: '1px solid rgba(38, 38, 38, 0.6)',
+  borderRadius: 16,
+  marginBottom: 24,
+  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:hover': {
+    transform: 'translateY(-8px) scale(1.02)',
+    boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
+    borderColor: 'rgba(0, 149, 246, 0.3)',
+  },
+}));
+
+const AnimatedIconButton = styled(IconButton)(({ theme }) => ({
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  position: 'relative',
+  '&:hover': {
+    transform: 'scale(1.2)',
+    color: '#4facfe',
+  },
+  '&:active': {
+    transform: 'scale(0.95)',
+  },
 }));
 
 const HomeView = () => {
@@ -94,6 +132,9 @@ const HomeView = () => {
   const [likedPosts, setLikedPosts] = useState(new Set());
   const [savedPosts, setSavedPosts] = useState(new Set());
   const [followingUsers, setFollowingUsers] = useState(new Set());
+  const [commentTexts, setCommentTexts] = useState({});
+  const [showComments, setShowComments] = useState({});
+  const [comments, setComments] = useState({});
 
   useEffect(() => {
     fetchHomePosts();
@@ -114,7 +155,24 @@ const HomeView = () => {
 
       if (response.ok) {
         const postsData = await response.json();
-        setPosts(postsData.posts || []);
+        const posts = postsData.posts || [];
+        setPosts(posts);
+        
+        // Initialize liked and saved posts state
+        const likedSet = new Set();
+        const savedSet = new Set();
+        
+        posts.forEach(post => {
+          if (post.liked) {
+            likedSet.add(post._id);
+          }
+          if (post.isSaved) {
+            savedSet.add(post._id);
+          }
+        });
+        
+        setLikedPosts(likedSet);
+        setSavedPosts(savedSet);
       } else {
         // If no home feed, try to get all posts
         const allPostsResponse = await fetch('/api/posts', {
@@ -126,7 +184,24 @@ const HomeView = () => {
         
         if (allPostsResponse.ok) {
           const allPostsData = await allPostsResponse.json();
-          setPosts(allPostsData.data || []);
+          const posts = allPostsData.data || [];
+          setPosts(posts);
+          
+          // Initialize liked and saved posts state
+          const likedSet = new Set();
+          const savedSet = new Set();
+          
+          posts.forEach(post => {
+            if (post.liked) {
+              likedSet.add(post._id);
+            }
+            if (post.isSaved) {
+              savedSet.add(post._id);
+            }
+          });
+          
+          setLikedPosts(likedSet);
+          setSavedPosts(savedSet);
         } else {
           setPosts([]);
         }
@@ -142,16 +217,31 @@ const HomeView = () => {
   const fetchSuggestedUsers = async () => {
     try {
       const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
+      
       const response = await fetch('/api/users/random?size=5', {
+        method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          userId: userData._id
+        }),
       });
 
       if (response.ok) {
         const users = await response.json();
         setSuggestedUsers(users);
+        
+        // Update followingUsers state based on isFollowing status
+        const followingSet = new Set();
+        users.forEach(user => {
+          if (user.isFollowing) {
+            followingSet.add(user._id);
+          }
+        });
+        setFollowingUsers(followingSet);
       }
     } catch (error) {
       console.error('Error fetching suggested users:', error);
@@ -161,15 +251,23 @@ const HomeView = () => {
   const handleLike = async (postId) => {
     try {
       const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
       const isLiked = likedPosts.has(postId);
       
-      const response = await fetch(`/api/posts/${postId}/like`, {
-        method: 'POST',
+      console.log('Liking post:', postId, 'isLiked:', isLiked);
+      
+      const response = await fetch(`/api/posts/like/${postId}`, {
+        method: isLiked ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          userId: userData._id
+        }),
       });
+
+      console.log('Like response:', response.status);
 
       if (response.ok) {
         setLikedPosts(prev => {
@@ -181,6 +279,20 @@ const HomeView = () => {
           }
           return newSet;
         });
+        
+        // Update the post's like count in the posts array
+        setPosts(prev => prev.map(post => {
+          if (post._id === postId) {
+            return {
+              ...post,
+              likeCount: isLiked ? (post.likeCount || 1) - 1 : (post.likeCount || 0) + 1
+            };
+          }
+          return post;
+        }));
+      } else {
+        const errorData = await response.json();
+        console.error('Like error:', errorData);
       }
     } catch (error) {
       console.error('Error liking post:', error);
@@ -190,14 +302,18 @@ const HomeView = () => {
   const handleSave = async (postId) => {
     try {
       const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
       const isSaved = savedPosts.has(postId);
       
-      const response = await fetch(`/api/posts/${postId}/save`, {
-        method: 'POST',
+      const response = await fetch(`/api/posts/save/${postId}`, {
+        method: isSaved ? 'DELETE' : 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({
+          userId: userData._id
+        }),
       });
 
       if (response.ok) {
@@ -245,25 +361,182 @@ const HomeView = () => {
     }
   };
 
+  const handleComment = async (postId) => {
+    try {
+      const token = localStorage.getItem('token');
+      const userData = JSON.parse(localStorage.getItem('user'));
+      const commentText = commentTexts[postId];
+      
+      if (!commentText || !commentText.trim()) {
+        alert('Please enter a comment');
+        return;
+      }
+
+      console.log('Commenting on post:', postId, 'text:', commentText);
+
+      const response = await fetch(`/api/comments/${postId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: commentText,
+          userId: userData._id
+        }),
+      });
+
+      console.log('Comment response:', response.status);
+
+      if (response.ok) {
+        // Clear comment text
+        setCommentTexts(prev => ({
+          ...prev,
+          [postId]: ''
+        }));
+        
+        // Update the post's comment count
+        setPosts(prev => prev.map(post => {
+          if (post._id === postId) {
+            return {
+              ...post,
+              commentCount: (post.commentCount || 0) + 1
+            };
+          }
+          return post;
+        }));
+        
+        // Refresh comments for this post
+        fetchComments(postId);
+      } else {
+        const errorData = await response.json();
+        console.error('Comment error:', errorData);
+      }
+    } catch (error) {
+      console.error('Error commenting:', error);
+    }
+  };
+
+  const fetchComments = async (postId) => {
+    try {
+      const response = await fetch(`/api/comments/post/${postId}`);
+      if (response.ok) {
+        const commentsData = await response.json();
+        setComments(prev => ({
+          ...prev,
+          [postId]: commentsData
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+  const toggleComments = (postId) => {
+    setShowComments(prev => ({
+      ...prev,
+      [postId]: !prev[postId]
+    }));
+    
+    // Fetch comments if not already loaded
+    if (!comments[postId]) {
+      fetchComments(postId);
+    }
+  };
+
   const handleUserClick = (username) => {
     navigate(`/profile/${username}`);
   };
 
+  const handleShare = async (postId) => {
+    try {
+      const postUrl = `${window.location.origin}/post/${postId}`;
+      await navigator.clipboard.writeText(postUrl);
+      alert('Post URL copied to clipboard!');
+    } catch (error) {
+      console.error('Error copying to clipboard:', error);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = `${window.location.origin}/post/${postId}`;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Post URL copied to clipboard!');
+    }
+  };
+
   const PostCard = ({ post }) => (
     <Fade in={true} timeout={500}>
-      <StyledCard>
+      <Box
+        className="glass-card hover-lift"
+        sx={{
+          mb: 3,
+          position: 'relative',
+          overflow: 'hidden',
+          maxWidth: '100%',
+          borderRadius: '16px',
+          backgroundColor: 'rgba(30, 30, 30, 0.8)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+          border: '1px solid rgba(38, 38, 38, 0.6)',
+          transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+          '&:hover': {
+            transform: 'translateY(-8px) scale(1.02)',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.4)',
+            borderColor: 'rgba(0, 149, 246, 0.3)',
+            '& .post-image': {
+              transform: 'scale(1.05)',
+            },
+            '& .action-button': {
+              transform: 'scale(1.1)',
+            },
+            '&::before': {
+              opacity: 0.7,
+            },
+            '&::after': {
+              opacity: 1
+            },
+          },
+        }}
+      >
         {/* Post Header */}
-        <PostHeader>
+        <Box
+          sx={{
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2,
+            position: 'relative',
+            zIndex: 2,
+          }}
+        >
           <Avatar
-            src={post.poster?.avatar || `https://ui-avatars.com/api/?name=${post.poster?.username}&background=random`}
-            sx={{ width: 32, height: 32, cursor: 'pointer' }}
-            onClick={() => handleUserClick(post.poster?.username)}
-          />
+            src={post.poster?.avatar}
+            sx={{
+              width: 40,
+              height: 40,
+              background: post.poster?.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              fontWeight: 600,
+            }}
+          >
+            {!post.poster?.avatar && post.poster?.username?.charAt(0)?.toUpperCase()}
+          </Avatar>
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography 
                 variant="body2" 
-                sx={{ fontWeight: 600, cursor: 'pointer' }}
+                sx={{ 
+                  fontWeight: 600, 
+                  cursor: 'pointer',
+                  color: 'white',
+                  '&:hover': {
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                  },
+                }}
                 onClick={() => handleUserClick(post.poster?.username)}
               >
                 {post.poster?.username}
@@ -273,138 +546,510 @@ const HomeView = () => {
                   label="✓"
                   size="small"
                   sx={{
-                    backgroundColor: '#0095f6',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     color: 'white',
                     fontSize: '0.6rem',
                     height: 16,
+                    animation: 'pulse 2s infinite',
                   }}
                 />
               )}
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              {post.location && (
-                <>
-                  <LocationIcon sx={{ fontSize: 12, color: 'text.secondary' }} />
-                  <Typography variant="caption" color="text.secondary">
-                    {post.location}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    •
-                  </Typography>
-                </>
-              )}
-              <TimeIcon sx={{ fontSize: 12, color: 'text.secondary' }} />
-              <Typography variant="caption" color="text.secondary">
-                {new Date(post.createdAt).toLocaleDateString()}
-              </Typography>
-            </Box>
+            <Typography variant="caption" color="text.secondary">
+              {new Date(post.createdAt).toLocaleDateString()}
+            </Typography>
           </Box>
-          <IconButton size="small">
-            <MoreIcon />
-          </IconButton>
-        </PostHeader>
+        </Box>
 
         {/* Post Image */}
-        <CardMedia
-          component="img"
-          image={post.image || `https://picsum.photos/600/600?random=${post._id}`}
-          alt={post.title || 'Post'}
+        <Box
+          className="post-image"
           sx={{
-            height: 600,
-            objectFit: 'cover',
+            position: 'relative',
+            overflow: 'hidden',
+            transition: 'var(--transition-normal)',
             cursor: 'pointer',
-            transition: 'transform 0.3s ease-in-out',
-            '&:hover': {
-              transform: 'scale(1.02)',
+            maxHeight: '600px',
+            '&:hover .image-overlay': {
+              opacity: 1,
             },
+            '&:hover .view-post-button': {
+              opacity: 1,
+              transform: 'translateY(0)',
+            }
           }}
           onClick={() => navigate(`/post/${post._id}`)}
-        />
-
-        {/* Post Actions */}
-        <PostActions>
-          <ActionButtons>
-            <IconButton
-              onClick={() => handleLike(post._id)}
+        >
+          <img
+            src={post.image}
+            alt={post.title}
+            style={{
+              width: '100%',
+              height: 'auto',
+              maxHeight: '600px',
+              objectFit: 'cover',
+              display: 'block',
+              transition: 'var(--transition-normal)',
+            }}
+          />
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'linear-gradient(135deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.5) 100%)',
+              opacity: 0,
+              transition: 'var(--transition-normal)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            className="image-overlay"
+          >
+            <Button
+              variant="contained"
+              className="view-post-button"
               sx={{
-                color: likedPosts.has(post._id) ? 'error.main' : 'text.primary',
-                transition: 'all 0.2s ease-in-out',
+                background: 'var(--primary-gradient)',
+                borderRadius: '30px',
+                color: 'white',
+                fontWeight: 600,
+                px: 3,
+                py: 1,
+                opacity: 0,
+                transform: 'translateY(20px)',
+                transition: 'var(--transition-normal)',
                 '&:hover': {
-                  transform: 'scale(1.1)',
-                },
+                  background: 'var(--primary-gradient)',
+                  boxShadow: 'var(--glass-shadow)',
+                  transform: 'translateY(0) scale(1.05)',
+                }
               }}
             >
-              {likedPosts.has(post._id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+              View Post
+            </Button>
+          </Box>
+        </Box>
+
+        {/* Post Actions */}
+        <Box
+          sx={{
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            position: 'relative',
+            zIndex: 2,
+            background: 'var(--glass-gradient)',
+            backdropFilter: 'var(--glass-blur-sm)',
+            WebkitBackdropFilter: 'var(--glass-blur-sm)',
+            borderTop: '1px solid var(--glass-border)',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <IconButton
+              className="action-button"
+              onClick={() => handleLike(post._id)}
+              sx={{
+                color: likedPosts.has(post._id) ? '#ff4757' : 'rgba(255, 255, 255, 0.8)',
+                transition: 'var(--transition-normal)',
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: 0,
+                  height: 0,
+                  borderRadius: '50%',
+                  background: likedPosts.has(post._id) ? 'rgba(255, 71, 87, 0.2)' : 'rgba(255, 71, 87, 0.1)',
+                  transform: 'translate(-50%, -50%)',
+                  transition: 'var(--transition-fast)',
+                  zIndex: -1,
+                },
+                '&:hover': {
+                  transform: 'scale(1.2)',
+                  color: likedPosts.has(post._id) ? '#ff3742' : '#ff4757',
+                  '&::before': {
+                    width: '150%',
+                    height: '150%',
+                  },
+                },
+                '&:active': {
+                  transform: 'scale(0.95)',
+                },
+                ...(likedPosts.has(post._id) && {
+                  animation: 'pulse 0.4s ease-out',
+                }),
+              }}
+            >
+              {likedPosts.has(post._id) ? <LikeIcon /> : <UnlikeIcon />}
             </IconButton>
             <IconButton
+              className="action-button"
               onClick={() => navigate(`/post/${post._id}`)}
               sx={{
-                transition: 'all 0.2s ease-in-out',
+                color: 'rgba(255, 255, 255, 0.8)',
+                transition: 'var(--transition-normal)',
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: 0,
+                  height: 0,
+                  borderRadius: '50%',
+                  background: 'rgba(79, 172, 254, 0.1)',
+                  transform: 'translate(-50%, -50%)',
+                  transition: 'var(--transition-fast)',
+                  zIndex: -1,
+                },
                 '&:hover': {
-                  transform: 'scale(1.1)',
+                  transform: 'scale(1.2)',
+                  color: '#4facfe',
+                  '&::before': {
+                    width: '150%',
+                    height: '150%',
+                  },
+                },
+                '&:active': {
+                  transform: 'scale(0.95)',
                 },
               }}
             >
               <CommentIcon />
             </IconButton>
             <IconButton
+              className="action-button"
+              onClick={() => handleShare(post._id)}
               sx={{
-                transition: 'all 0.2s ease-in-out',
+                color: 'rgba(255, 255, 255, 0.8)',
+                transition: 'var(--transition-normal)',
+                position: 'relative',
+                overflow: 'hidden',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  width: 0,
+                  height: 0,
+                  borderRadius: '50%',
+                  background: 'rgba(67, 233, 123, 0.1)',
+                  transform: 'translate(-50%, -50%)',
+                  transition: 'var(--transition-fast)',
+                  zIndex: -1,
+                },
                 '&:hover': {
-                  transform: 'scale(1.1)',
+                  transform: 'scale(1.2)',
+                  color: '#43e97b',
+                  '&::before': {
+                    width: '150%',
+                    height: '150%',
+                  },
+                },
+                '&:active': {
+                  transform: 'scale(0.95)',
                 },
               }}
             >
               <SendIcon />
             </IconButton>
-          </ActionButtons>
+          </Box>
           <IconButton
+            className="action-button"
             onClick={() => handleSave(post._id)}
             sx={{
-              color: savedPosts.has(post._id) ? 'primary.main' : 'text.primary',
-              transition: 'all 0.2s ease-in-out',
+              color: savedPosts.has(post._id) ? '#4facfe' : 'rgba(255, 255, 255, 0.8)',
+              transition: 'var(--transition-normal)',
+              position: 'relative',
+              overflow: 'hidden',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                width: 0,
+                height: 0,
+                borderRadius: '50%',
+                background: savedPosts.has(post._id) ? 'rgba(0, 242, 254, 0.2)' : 'rgba(79, 172, 254, 0.1)',
+                transform: 'translate(-50%, -50%)',
+                transition: 'var(--transition-fast)',
+                zIndex: -1,
+              },
               '&:hover': {
-                transform: 'scale(1.1)',
+                transform: 'scale(1.2)',
+                color: savedPosts.has(post._id) ? '#00f2fe' : '#4facfe',
+                '&::before': {
+                  width: '150%',
+                  height: '150%',
+                },
+              },
+              '&:active': {
+                transform: 'scale(0.95)',
               },
             }}
           >
-            {savedPosts.has(post._id) ? <BookmarkFilledIcon /> : <BookmarkIcon />}
+            {savedPosts.has(post._id) ? <SaveIcon /> : <UnsaveIcon />}
           </IconButton>
-        </PostActions>
+        </Box>
 
         {/* Post Footer */}
-        <PostFooter>
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+        <Box
+          sx={{
+            px: 2,
+            pb: 2,
+            position: 'relative',
+            zIndex: 2,
+            background: 'var(--glass-gradient)',
+            backdropFilter: 'var(--glass-blur-sm)',
+            WebkitBackdropFilter: 'var(--glass-blur-sm)',
+          }}
+        >
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              fontWeight: 700, 
+              mb: 1,
+              pt: 1,
+              color: 'white',
+              background: 'var(--primary-gradient)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              display: 'inline-block',
+              position: 'relative',
+              '&::after': {
+                content: '""',
+                position: 'absolute',
+                bottom: -2,
+                left: 0,
+                width: '100%',
+                height: 1,
+                background: 'var(--primary-gradient)',
+                opacity: 0.5,
+                borderRadius: 1,
+              }
+            }}
+          >
             {post.likeCount || 0} likes
           </Typography>
-          <Typography variant="body2" sx={{ mb: 1 }}>
-            <span style={{ fontWeight: 600 }}>{post.poster?.username}</span> {post.content}
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              mb: 1.5,
+              color: 'rgba(255, 255, 255, 0.9)',
+              lineHeight: 1.6,
+              fontSize: '0.95rem',
+              position: 'relative',
+              pl: 0.5,
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                left: 0,
+                top: 0,
+                bottom: 0,
+                width: 2,
+                borderRadius: 4,
+                background: 'var(--primary-gradient)',
+                opacity: 0.5,
+              }
+            }}
+          >
+            <span style={{ fontWeight: 600, color: 'white', marginRight: '6px' }}>{post.poster?.username}</span> 
+            {post.content}
           </Typography>
           {post.commentCount > 0 && (
             <Typography
               variant="body2"
               color="text.secondary"
-              sx={{ cursor: 'pointer' }}
-              onClick={() => navigate(`/post/${post._id}`)}
+              sx={{ 
+                cursor: 'pointer', 
+                mb: 1.5,
+                color: 'rgba(255, 255, 255, 0.7)',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 0.5,
+                transition: 'var(--transition-normal)',
+                '&:hover': {
+                  color: '#4facfe',
+                  transform: 'translateX(4px)',
+                },
+              }}
+              onClick={() => toggleComments(post._id)}
             >
-              View all {post.commentCount} comments
+              {showComments[post._id] ? 'Hide' : 'View all'} {post.commentCount} comments
+              <Box 
+                component="span" 
+                sx={{ 
+                  fontSize: '1rem', 
+                  transition: 'var(--transition-normal)',
+                  transform: showComments[post._id] ? 'rotate(180deg)' : 'rotate(0deg)',
+                }}
+              >
+                ↓
+              </Box>
             </Typography>
           )}
-        </PostFooter>
+          
+          {/* Comments Section */}
+          {showComments[post._id] && comments[post._id] && (
+            <Box 
+              sx={{ 
+                mt: 2,
+                animation: 'slideInUp 0.3s ease-out',
+                maxHeight: '300px',
+                overflowY: 'auto',
+                pr: 1,
+                mr: -1,
+                '&::-webkit-scrollbar': {
+                  width: '4px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: 'var(--primary-gradient)',
+                  borderRadius: '10px',
+                },
+              }}
+            >
+              {comments[post._id].map((comment, index) => (
+                <Box 
+                  key={comment._id} 
+                  sx={{ 
+                    mb: 1.5,
+                    p: 1.5,
+                    borderRadius: '12px',
+                    background: 'var(--glass-bg-dark)',
+                    border: '1px solid var(--glass-border)',
+                    backdropFilter: 'var(--glass-blur-sm)',
+                    WebkitBackdropFilter: 'var(--glass-blur-sm)',
+                    transition: 'var(--transition-normal)',
+                    animation: `fadeInUp 0.3s ease-out ${index * 0.05}s`,
+                    '&:hover': {
+                      transform: 'translateY(-2px)',
+                      boxShadow: 'var(--glass-shadow-sm)',
+                      borderColor: 'var(--glass-border-hover)',
+                    }
+                  }}
+                >
+                  <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.9)', lineHeight: 1.5 }}>
+                    <span 
+                      style={{ 
+                        fontWeight: 600, 
+                        color: 'white', 
+                        marginRight: '8px',
+                        cursor: 'pointer',
+                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                      }}
+                      onClick={() => handleUserClick(comment.commenter?.username)}
+                    >
+                      {comment.commenter?.username}
+                    </span> 
+                    {comment.content}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
 
         {/* Comment Input */}
-        <CommentSection>
+        <Box
+          sx={{
+            p: 2,
+            borderTop: '1px solid var(--glass-border)',
+            position: 'relative',
+            zIndex: 2,
+            background: 'var(--glass-gradient)',
+            backdropFilter: 'var(--glass-blur-sm)',
+            WebkitBackdropFilter: 'var(--glass-blur-sm)',
+            borderBottomLeftRadius: '24px',
+            borderBottomRightRadius: '24px',
+            transition: 'var(--transition-normal)',
+            '&:hover': {
+              boxShadow: 'var(--glass-shadow-sm)',
+            }
+          }}
+        >
           <TextField
             fullWidth
             placeholder="Add a comment..."
             variant="standard"
+            value={commentTexts[post._id] || ''}
+            onChange={(e) => setCommentTexts(prev => ({
+              ...prev,
+              [post._id]: e.target.value
+            }))}
+            onKeyPress={(e) => {
+              if (e.key === 'Enter') {
+                handleComment(post._id);
+              }
+            }}
+            sx={{
+              '& .MuiInput-root': {
+                color: 'white',
+                '&:before': {
+                  borderBottom: '1px solid var(--glass-border)',
+                },
+                '&:after': {
+                  borderBottom: '2px solid var(--primary-color)',
+                  background: 'var(--primary-gradient)',
+                },
+                '&:hover:before': {
+                  borderBottom: '1px solid var(--glass-border-hover)',
+                },
+              },
+              '& .MuiInput-input': {
+                color: 'white',
+                '&::placeholder': {
+                  color: 'rgba(255, 255, 255, 0.6)',
+                  opacity: 1,
+                },
+                transition: 'var(--transition-normal)',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                '&:focus': {
+                  background: 'rgba(255, 255, 255, 0.05)',
+                }
+              },
+            }}
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
                   <Button
                     variant="text"
                     size="small"
-                    sx={{ color: 'primary.main', fontWeight: 600 }}
+                    sx={{ 
+                      color: (commentTexts[post._id] || '').trim() ? 'var(--primary-color)' : 'rgba(255, 255, 255, 0.3)',
+                      fontWeight: 600,
+                      transition: 'var(--transition-normal)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'var(--primary-gradient)',
+                        opacity: 0,
+                        transition: 'var(--transition-normal)',
+                        borderRadius: '4px',
+                        zIndex: -1,
+                      },
+                      '&:hover': {
+                        color: (commentTexts[post._id] || '').trim() ? 'white' : 'rgba(255, 255, 255, 0.3)',
+                        transform: (commentTexts[post._id] || '').trim() ? 'scale(1.05)' : 'none',
+                        '&::before': {
+                          opacity: (commentTexts[post._id] || '').trim() ? 0.8 : 0,
+                        }
+                      },
+                    }}
+                    onClick={() => handleComment(post._id)}
+                    disabled={!(commentTexts[post._id] || '').trim()}
                   >
                     Post
                   </Button>
@@ -412,66 +1057,114 @@ const HomeView = () => {
               ),
             }}
           />
-        </CommentSection>
-      </StyledCard>
+        </Box>
+      </Box>
     </Fade>
   );
 
   const SuggestedUsers = () => (
-    <SuggestedUsersCard>
-      <CardContent>
-        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+    <Box
+      className="glass-card"
+      sx={{
+        height: 'fit-content',
+        maxHeight: 'calc(100vh - 140px)',
+        overflow: 'hidden',
+      }}
+    >
+      <Box sx={{ p: 2 }}>
+        <Typography 
+          variant="h6" 
+          sx={{ 
+            mb: 2, 
+            fontWeight: 600,
+            color: 'white',
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}
+        >
           Suggested for You
         </Typography>
-        <List sx={{ p: 0 }}>
-          {suggestedUsers.map((user) => (
-            <ListItem key={user._id} sx={{ px: 0, py: 1 }}>
-              <ListItemAvatar>
-                <Avatar
-                  src={user.avatar || `https://ui-avatars.com/api/?name=${user.username}&background=random`}
-                  sx={{ width: 40, height: 40, cursor: 'pointer' }}
-                  onClick={() => handleUserClick(user.username)}
-                />
-              </ListItemAvatar>
-              <ListItemText
-                primary={
-                  <Typography
-                    variant="body2"
-                    sx={{ fontWeight: 600, cursor: 'pointer' }}
-                    onClick={() => handleUserClick(user.username)}
-                  >
-                    {user.username}
-                  </Typography>
-                }
-                secondary={
-                  <Typography variant="caption" color="text.secondary">
-                    {user.followerCount || 0} followers
-                  </Typography>
-                }
-              />
-              <Button
-                variant={followingUsers.has(user._id) ? "outlined" : "contained"}
-                size="small"
-                onClick={() => handleFollow(user._id)}
-                startIcon={followingUsers.has(user._id) ? <UnfollowIcon /> : <FollowIcon />}
-                sx={{
-                  minWidth: 80,
-                  fontSize: '0.75rem',
-                  borderColor: followingUsers.has(user._id) ? '#dbdbdb' : '#0095f6',
-                  color: followingUsers.has(user._id) ? '#262626' : '#ffffff',
-                  '&:hover': {
-                    borderColor: followingUsers.has(user._id) ? '#ff6b6b' : '#0081d6',
-                    color: followingUsers.has(user._id) ? '#ff6b6b' : '#ffffff',
-                  },
+        <Box sx={{ maxHeight: 'calc(100vh - 220px)', overflowY: 'auto' }}>
+          <List sx={{ p: 0 }}>
+            {suggestedUsers.map((user, index) => (
+              <ListItem 
+                key={user._id} 
+                sx={{ 
+                  px: 0, 
+                  py: 1,
+                  animation: `slideInRight 0.6s ease-out ${index * 0.1}s`,
                 }}
               >
-                {followingUsers.has(user._id) ? 'Following' : 'Follow'}
-              </Button>
-            </ListItem>
-          ))}
-        </List>
-      </CardContent>
-    </SuggestedUsersCard>
+                <ListItemAvatar>
+                  <Avatar
+                    src={user.avatar}
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      background: user.avatar ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      color: 'white',
+                      fontWeight: 600,
+                    }}
+                  >
+                    {!user.avatar && user.username?.charAt(0)?.toUpperCase()}
+                  </Avatar>
+                </ListItemAvatar>
+                <ListItemText
+                  primary={
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontWeight: 600,
+                        color: 'white',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          WebkitBackgroundClip: 'text',
+                          WebkitTextFillColor: 'transparent',
+                        },
+                      }}
+                      onClick={() => handleUserClick(user.username)}
+                    >
+                      {user.username}
+                    </Typography>
+                  }
+                  secondary={
+                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                      {user.followerCount || 0} followers
+                    </Typography>
+                  }
+                />
+                <Button
+                  variant="outlined"
+                  size="small"
+                  onClick={() => handleFollow(user._id)}
+                  sx={{
+                    borderColor: followingUsers.has(user._id) ? 'rgba(255, 255, 255, 0.3)' : 'rgba(255, 255, 255, 0.2)',
+                    color: followingUsers.has(user._id) ? 'rgba(255, 255, 255, 0.7)' : 'white',
+                    background: followingUsers.has(user._id) ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                    borderRadius: '20px',
+                    px: 2,
+                    py: 0.5,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    '&:hover': {
+                      transform: 'scale(1.05)',
+                      borderColor: followingUsers.has(user._id) ? '#ff4757' : '#667eea',
+                      color: followingUsers.has(user._id) ? '#ff4757' : '#667eea',
+                      background: followingUsers.has(user._id) ? 'rgba(255, 71, 87, 0.1)' : 'rgba(102, 126, 234, 0.1)',
+                    },
+                  }}
+                >
+                  {followingUsers.has(user._id) ? 'Following' : 'Follow'}
+                </Button>
+              </ListItem>
+            ))}
+          </List>
+        </Box>
+      </Box>
+    </Box>
   );
 
   const LoadingSkeleton = () => (
@@ -492,47 +1185,223 @@ const HomeView = () => {
   );
 
   return (
-    <Container maxWidth="lg" sx={{ py: 3 }}>
-      <Grid container spacing={3}>
-        {/* Main Content */}
-        <Grid item xs={12} md={8}>
-          <Box sx={{ maxWidth: 600, mx: 'auto' }}>
-            {loading ? (
-              <>
-                <LoadingSkeleton />
-                <LoadingSkeleton />
-                <LoadingSkeleton />
-              </>
-            ) : posts.length > 0 ? (
-              posts.map((post) => <PostCard key={post._id} post={post} />)
-            ) : (
-              <Box sx={{ textAlign: 'center', py: 8 }}>
-                <Typography variant="h6" color="text.secondary" sx={{ mb: 2 }}>
-                  No posts yet
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                  Follow some users to see their posts in your feed
-                </Typography>
-                <Button
-                  variant="contained"
-                  onClick={() => navigate('/explore')}
-                >
-                  Explore Posts
-                </Button>
-              </Box>
-            )}
-          </Box>
-        </Grid>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #0f0f23 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%)',
+        backgroundAttachment: 'fixed',
+        backgroundSize: 'cover',
+        pt: 1,
+        pb: 2,
+        animation: 'fadeInUp 0.6s ease-out',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'radial-gradient(circle at 15% 50%, rgba(101, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.05) 25%, rgba(0, 0, 0, 0) 50%)',
+          pointerEvents: 'none',
+        },
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'url("data:image/svg+xml,%3Csvg width=\'100\' height=\'100\' viewBox=\'0 0 100 100\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cpath d=\'M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z\' fill=\'%23ffffff\' fill-opacity=\'0.03\' fill-rule=\'evenodd\'/%3E%3C/svg%3E")',
+          backgroundSize: '180px 180px',
+          opacity: 0.5,
+          pointerEvents: 'none',
+        }
+      }}
+    >
+      <Container maxWidth="xl">
+        <Box sx={{ display: 'flex', gap: 3, justifyContent: 'center' }}>
+          {/* Left side - Empty for balance */}
+          <Box sx={{ width: '20%', display: { xs: 'none', md: 'block' } }} />
 
-        {/* Sidebar */}
-        <Grid item xs={12} md={4}>
-          <Box sx={{ position: 'sticky', top: 24 }}>
-            <SuggestedUsers />
+          {/* Center - Posts */}
+          <Box sx={{ width: { xs: '100%', sm: '80%', md: '50%' }, maxWidth: 500 }}>
+            <Box
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  animation: 'slideInLeft 0.6s ease-out',
+                  position: 'relative',
+                  backgroundColor: 'rgba(30, 30, 30, 0.8)',
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(38, 38, 38, 0.6)',
+                  borderRadius: 16,
+                  transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+            >
+              {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <Skeleton variant="circular" width={40} height={40} />
+                  <Box sx={{ ml: 1, flex: 1 }}>
+                    <Skeleton variant="text" width={120} />
+                    <Skeleton variant="text" width={80} />
+                  </Box>
+                </Box>
+              ) : posts.length > 0 ? (
+                posts.map((post, index) => (
+                  <Box 
+                    key={post._id} 
+                    sx={{ 
+                      mb: index < posts.length - 1 ? 4 : 0,
+                      animation: `fadeInUp 0.5s ease-out ${index * 0.1}s both`,
+                      transform: 'translateZ(0)', // Force hardware acceleration
+                    }}
+                  >
+                    <PostCard post={post} />
+                  </Box>
+                ))
+              ) : (
+                <Box
+                  sx={{
+                    p: 4,
+                    textAlign: 'center',
+                    animation: 'bounceIn 0.6s ease-out',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    backgroundColor: 'rgba(30, 30, 30, 0.8)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(38, 38, 38, 0.6)',
+                    borderRadius: 16,
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                >
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      mb: 2,
+                      color: 'white',
+                      fontWeight: 600,
+                      background: 'var(--primary-gradient)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
+                    No posts yet
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      mb: 3,
+                    }}
+                  >
+                    Follow some users to see their posts here!
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate('/explore')}
+                    sx={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      borderRadius: '25px',
+                      px: 3,
+                      py: 1.5,
+                      fontWeight: 600,
+                      textTransform: 'none',
+                      transition: 'all 0.3s ease',
+                      boxShadow: '0 10px 20px rgba(101, 126, 234, 0.3)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      '&::before': {
+                        content: '""',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        background: 'linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%)',
+                        opacity: 0,
+                        transition: 'var(--transition-normal)',
+                      },
+                      '&:hover': {
+                        transform: 'translateY(-2px) scale(1.05)',
+                        boxShadow: '0 15px 25px rgba(102, 126, 234, 0.4)',
+                        '&::before': {
+                          opacity: 1,
+                        }
+                      },
+                      '&:active': {
+                        transform: 'translateY(0)',
+                        boxShadow: '0 5px 15px rgba(102, 126, 234, 0.2)',
+                      }
+                    }}
+                  >
+                    Explore Posts
+                  </Button>
+                </Box>
+              )}
+            </Box>
           </Box>
-        </Grid>
-      </Grid>
-    </Container>
+
+          {/* Right side - Fixed Suggestions */}
+          <Box sx={{ width: '20%', display: { xs: 'none', md: 'block' } }}>
+            <Box
+              sx={{
+                position: 'fixed',
+                top: 70,
+                width: '18%',
+                maxWidth: 280,
+                animation: 'slideInRight 0.6s ease-out',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+              }}
+            >
+              {suggestedUsers.length > 0 ? (
+                <SuggestedUsers />
+              ) : (
+                <Box
+                  sx={{
+                    p: 3,
+                    textAlign: 'center',
+                    position: 'relative',
+                    overflow: 'hidden',
+                    backgroundColor: 'rgba(30, 30, 30, 0.8)',
+                    backdropFilter: 'blur(10px)',
+                    WebkitBackdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(38, 38, 38, 0.6)',
+                    borderRadius: 16,
+                    transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }}
+                >
+                  <Typography 
+                    variant="h6" 
+                    sx={{ 
+                      mb: 2,
+                      color: 'white',
+                      fontWeight: 600,
+                      background: 'var(--primary-gradient)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                    }}
+                  >
+                    No suggestions
+                  </Typography>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      color: 'rgba(255, 255, 255, 0.7)',
+                    }}
+                  >
+                    Check back later for user suggestions!
+                  </Typography>
+                </Box>
+              )}
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+    </Box>
   );
 };
 
-export default HomeView; 
+export default HomeView;

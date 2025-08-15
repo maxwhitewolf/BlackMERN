@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Post = require("../models/Post");
 const paginate = require("../util/paginate");
 const cooldown = new Set();
+const { createNotification } = require("./notificationControllers");
 
 const createComment = async (req, res) => {
   try {
@@ -33,11 +34,19 @@ const createComment = async (req, res) => {
       commenter: userId,
     });
 
+    // If this is a reply, add to parent's children array
+    if (parentId) {
+      await Comment.findByIdAndUpdate(parentId, { $push: { children: comment._id } });
+    }
+
     post.commentCount += 1;
 
     await post.save();
 
     await Comment.populate(comment, { path: "commenter", select: "-password" });
+
+    // Create notification for post owner
+    await createNotification(post.poster, userId, "comment", postId, comment._id);
 
     // Create activity for comment
     const { createActivity } = require("./activityControllers");

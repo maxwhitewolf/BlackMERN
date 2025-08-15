@@ -3,7 +3,6 @@ import {
   Avatar,
   IconButton,
   Stack,
-  TextField,
   Typography,
   Button,
   InputAdornment,
@@ -16,7 +15,6 @@ import {
   AiFillFileText,
   AiFillHome,
   AiFillMessage,
-  AiOutlineSearch,
 } from "react-icons/ai";
 import { Link, useNavigate } from "react-router-dom";
 import { isLoggedIn, logoutUser } from "../helpers/authHelper";
@@ -29,8 +27,9 @@ const Navbar = () => {
   const user = isLoggedIn();
   const theme = useTheme();
   const username = user && isLoggedIn().username;
-  const [search, setSearch] = useState("");
-  const [searchIcon, setSearchIcon] = useState(false);
+  // Search functionality removed
+  // const [search, setSearch] = useState("");
+  // const [searchIcon, setSearchIcon] = useState(false);
   const [width, setWindowWidth] = useState(0);
 
   useEffect(() => {
@@ -53,18 +52,19 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  const handleChange = (e) => {
-    setSearch(e.target.value);
-  };
+  // Search functionality removed
+  // const handleChange = (e) => {
+  //   setSearch(e.target.value);
+  // };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    navigate("/search?" + new URLSearchParams({ search }));
-  };
+  // const handleSubmit = (e) => {
+  //   e.preventDefault();
+  //   navigate("/search?" + new URLSearchParams({ search }));
+  // };
 
-  const handleSearchIcon = (e) => {
-    setSearchIcon(!searchIcon);
-  };
+  // const handleSearchIcon = (e) => {
+  //   setSearchIcon(!searchIcon);
+  // };
 
   return (
     <Stack mb={2}>
@@ -78,42 +78,30 @@ const Navbar = () => {
         }}
         spacing={!mobile ? 2 : 0}
       >
-        <HorizontalStack>
-          <AiFillFileText
-            size={33}
-            color={theme.palette.primary.main}
-            onClick={() => navigate("/")}
-          />
-          <Typography
-            sx={{ display: mobile ? "none" : "block" }}
-            variant={navbarWidth ? "h6" : "h4"}
-            mr={1}
-            color={theme.palette.primary.main}
-          >
-            {/* <Link to="/" color="inherit"> */}
-              PostIt
-            {/* </Link> */}
-          </Typography>
-        </HorizontalStack>
+        <Typography
+          sx={{ 
+            display: mobile ? "none" : "block",
+            position: "absolute",
+            left: "50%",
+            transform: "translateX(-50%)",
+            textAlign: "center"
+          }}
+          variant={navbarWidth ? "h6" : "h4"}
+          color={theme.palette.primary.main}
+        >
+          PostIt
+        </Typography>
+        <AiFillFileText
+          size={33}
+          color={theme.palette.primary.main}
+          onClick={() => navigate("/")}
+          style={{ cursor: "pointer" }}
+        />
 
-        {!navbarWidth && (
-          <Box component="form" onSubmit={handleSubmit}>
-            <TextField
-              size="small"
-              label="Search for posts..."
-              sx={{ flexGrow: 1, maxWidth: 300 }}
-              onChange={handleChange}
-              value={search}
-            />
-          </Box>
-        )}
+        {/* Search box removed */}
 
         <HorizontalStack>
-          {mobile && (
-            <IconButton onClick={handleSearchIcon}>
-              <AiOutlineSearch />
-            </IconButton>
-          )}
+          {/* Search icon removed */}
 
           <IconButton component={Link} to={"/"}>
             <AiFillHome />
@@ -140,17 +128,7 @@ const Navbar = () => {
           )}
         </HorizontalStack>
       </Stack>
-      {navbarWidth && searchIcon && (
-        <Box component="form" onSubmit={handleSubmit} mt={2}>
-          <TextField
-            size="small"
-            label="Search for posts..."
-            fullWidth
-            onChange={handleChange}
-            value={search}
-          />
-        </Box>
-      )}
+      {/* Mobile search box removed */}
     </Stack>
   );
 };

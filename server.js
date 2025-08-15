@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
+const multer = require("multer");
 const app = express();
 const { authSocket, socketServer } = require("./socketServer");
 const posts = require("./routes/posts");
@@ -10,6 +11,8 @@ const users = require("./routes/users");
 const comments = require("./routes/comments");
 const messages = require("./routes/messages");
 const activities = require("./routes/activities");
+const notifications = require("./routes/notifications");
+const search = require("./routes/search");
 const PostLike = require("./models/PostLike");
 const Post = require("./models/Post");
 
@@ -63,6 +66,25 @@ app.use(cors({
   credentials: true
 }));
 
+// Configure multer for file uploads
+const storage = multer.memoryStorage();
+const upload = multer({ 
+  storage: storage,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed!'), false);
+    }
+  }
+});
+
+// Make upload available to routes
+app.locals.upload = upload;
+
 // Health check route
 app.get("/api/health", (req, res) => {
   res.json({ 
@@ -86,6 +108,8 @@ app.use("/api/users", users);
 app.use("/api/comments", comments);
 app.use("/api/messages", messages);
 app.use("/api/activities", activities);
+app.use("/api/notifications", notifications);
+app.use("/api/search", search);
 
 if (process.env.NODE_ENV == "production") {
   app.use(express.static(path.join(__dirname, "/client/build")));

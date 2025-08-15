@@ -128,9 +128,13 @@ const ExploreView = () => {
                   <PostCard onClick={() => handlePostClick(post._id)}>
                     <CardMedia
                       component="img"
-                      image={post.image || `https://picsum.photos/300/300?random=${post._id}`}
+                      image={post.image || ''}
                       alt={post.title || 'Post'}
-                      sx={{ aspectRatio: '1/1', objectFit: 'cover' }}
+                      sx={{ 
+                        aspectRatio: '1/1', 
+                        objectFit: 'cover',
+                        backgroundColor: post.image ? 'transparent' : 'rgba(255, 255, 255, 0.1)'
+                      }}
                     />
                     <PostOverlay className="overlay">
                       <Box sx={{ textAlign: 'center', color: 'white' }}>
